@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>石巻魚市場 ギンザケ日計データ</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; color: #333; font-size: 56px; }
+  #header { position: fixed; top: 0; left: 0; right: 0; background: #1a73e8; color: white; z-index: 100; padding: 16px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); touch-action: none; }
+  #header-title { font-size: 54px; opacity: 0.85; margin-bottom: 6px; }
+  #current-date { font-size: 88px; font-weight: bold; letter-spacing: 1px; margin-bottom: 16px; line-height: 1.1; }
+  #btn-row, #btn-row-2 { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .btn { border: none; border-radius: 14px; padding: 26px 10px; font-size: 38px; font-weight: bold; cursor: pointer; flex: 1; min-height: 100px; }
+  .btn-nav { background: rgba(255,255,255,0.25); color: white; }
+  .btn-today { background: white; color: #1a73e8; flex: 1; }
+  .btn-cal-wide { background: rgba(255,255,255,0.15); color: white; border: 3px solid #e53935; border-radius: 14px; padding: 20px 10px; font-size: 36px; font-weight: bold; cursor: pointer; flex: 1; min-height: 90px; }
+  .btn-toggle { background: #fbbc04; color: #333; border: none; border-radius: 14px; padding: 20px 10px; font-size: 38px; font-weight: bold; cursor: pointer; flex: 1; min-height: 90px; }
+  #cal-panel { overflow: hidden; max-height: 0; transition: max-height 0.3s ease, padding 0.3s ease; }
+  #cal-panel.open { max-height: 400px; padding: 16px 0 0 0; }
+  #cal-inner { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  #date-input { width: 100%; padding: 20px; border: none; border-radius: 10px; font-size: 48px; background: white; color: #333; min-height: 110px; }
+  #cal-btn-row { display: flex; gap: 12px; }
+  #btn-cal-ok { flex: 1; background: #fbbc04; color: #333; border: none; border-radius: 10px; padding: 20px; font-size: 44px; font-weight: bold; cursor: pointer; min-height: 100px; }
+  #btn-cal-cancel { flex: 0.4; background: rgba(255,255,255,0.25); color: white; border: none; border-radius: 10px; padding: 20px; font-size: 44px; cursor: pointer; min-height: 100px; }
+  #content { padding: 20px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .year-block { margin-bottom: 36px; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .year-header { background: #1a73e8; color: white; padding: 20px 24px; display: flex; align-items: baseline; gap: 16px; }
+  .year-header-year, .year-header-date { font-size: 58px; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #e8f0fe; }
+  th { padding: 18px 12px; font-size: 34px; color: #555; text-align: right; border-bottom: 1px solid #ddd; white-space: nowrap; }
+  th:first-child { text-align: left; }
+  td { padding: 22px 12px; font-size: 50px; text-align: right; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  td:first-child { text-align: left; }
+  .row-total { font-weight: bold; background: #fff8e1; }
+  .row-total td { border-top: 2px solid #ddd; border-bottom: none; font-size: 54px; }
+  .chart-block { margin-bottom: 36px; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .chart-header { background: #1a73e8; color: white; padding: 20px 24px; }
+  .chart-header-year { font-size: 58px; font-weight: bold; }
+  .chart-info { background: #f0f4ff; border-bottom: 2px solid #dde; padding: 20px 24px; min-height: 160px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .chart-info-hint { font-size: 38px; color: #aaa; text-align: center; }
+  .chart-info-date { font-size: 52px; font-weight: bold; color: #1a73e8; }
+  .chart-info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #dde; }
+  .chart-info-label { font-size: 42px; color: #555; }
+  .chart-info-value { font-size: 58px; font-weight: bold; color: #333; }
+  .chart-wrap { padding: 16px; position: relative; height: 560px; }
+  #loading { text-align: center; padding: 40px; color: #888; font-size: 44px; }
+  #no-data { text-align: center; padding: 40px; color: #aaa; font-size: 44px; display: none; }
+  .no-data-label { position: absolute; top: 0; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .no-data-label-text { writing-mode: vertical-rl; font-size: 52px; font-weight: bold; color: rgba(150,150,150,0.75); letter-spacing: 8px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-title">石巻魚市場 ギンザケ日計データ</div>
+  <div id="current-date">読み込み中...</div>
+  <div id="btn-row">
+    <button class="btn btn-nav" id="btn-prev">← 前日</button>
+    <button class="btn btn-today" id="btn-today">本日</button>
+    <button class="btn btn-nav" id="btn-next">翌日 →</button>
+  </div>
+  <div id="btn-row-2">
+    <button class="btn-cal-wide" id="btn-cal">📅　日付を選んで移動</button>
+    <button class="btn-toggle" id="btn-toggle">📊　グラフ表示</button>
+  </div>
+  <div id="cal-panel">
+    <div id="cal-inner">
+      <input type="date" id="date-input">
+      <div id="cal-btn-row">
+        <button id="btn-cal-ok">決定</button>
+        <button id="btn-cal-cancel">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="content">
+  <div id="loading">読み込み中...</div>
+  <div id="no-data">この日のデータはありません</div>
+  <div id="data-area"></div>
+  <div id="chart-area" style="display:none;"></div>
+</div>
+
+<script>
+// ========== 設定 ==========
+var SHEET_ID  = '1tLvvP73GxPnJfdfX4_lctB1xOj_Hc7LroOSbaiTScC8';
+var API_KEY   = 'AIzaSyDqpcvm9SXL069-FMKxZ9kHaYL_Cl8OWpQ';
+var SHEET_NAME = 'データ';
+
+// ========== 規格並び順 ==========
+var GRADE_ORDER = ['3.5k上','3k上','2.5k上','2k上','1.5k上','1k上','0.5k上','スレ','次品','合計'];
+
+// ========== グラフ用設定 ==========
+var GRADE_LINE_COLORS = {
+  '3.5k上': '#1565c0',
+  '3k上':   '#1e88e5',
+  '2.5k上': '#43a047',
+  '2k上':   '#fb8c00',
+  '1.5k上': '#8e24aa',
+  '1k上':   '#6d4c41'
+};
+var GRADE_ORDER_CHART = ['3.5k上','3k上','2.5k上','2k上','1.5k上','1k上'];
+
+// ========== 状態 ==========
+var currentDate = new Date();
+var viewMode = 'list';
+var chartInstances = [];
+var allData = []; // スプレッドシートから取得した全データ
+var dataLoaded = false;
+
+// ========== 日付フォーマット ==========
+function formatDate(d) {
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return y+'/'+m+'/'+day;
+}
+function formatDateDisplay(d) {
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+function formatDateForInput(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function formatNote(note) {
+  if (note === null || note === undefined || note === '') return '—';
+  var str = String(note).trim();
+  if (str.indexOf('%') !== -1) return str;
+  var num = parseFloat(str);
+  if (isNaN(num)) return str;
+  return num.toFixed(1) + '%';
+}
+
+// ========== レイアウト調整 ==========
+function adjustContentMargin() {
+  var headerH = document.getElementById('header').offsetHeight;
+  document.getElementById('content').style.marginTop = (headerH + 8) + 'px';
+}
+function updateDateDisplay() {
+  document.getElementById('current-date').textContent = formatDateDisplay(currentDate);
+  document.getElementById('date-input').value = formatDateForInput(currentDate);
+  setTimeout(adjustContentMargin, 50);
+}
+
+// ========== Sheets API からデータ取得 ==========
+function fetchAllData(callback) {
+  if (dataLoaded) { callback(); return; }
+  var range = encodeURIComponent(SHEET_NAME + '!A:H');
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID
+          + '/values/' + range + '?key=' + API_KEY;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var rows = json.values || [];
+      allData = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (!r[0]) continue;
+        allData.push({
+          date:   String(r[0]).trim(),
+          fish:   r[1] || '',
+          grade:  r[2] || '',
+          qty:    parseFloat(r[3]) || 0,
+          amount: parseFloat(r[4]) || 0,
+          price:  parseFloat(r[5]) || 0,
+          note:   r[6] || ''
+        });
+      }
+      dataLoaded = true;
+      callback();
+    })
+    .catch(function(err) {
+      document.getElementById('loading').textContent = 'データの読み込みに失敗しました';
+      console.error(err);
+    });
+}
+
+// ========== 指定日・同月日データを返す ==========
+function getViewData(dateStr) {
+  var parts = dateStr.split('/');
+  var targetYear  = Number(parts[0]);
+  var targetMonth = Number(parts[1]);
+  var targetDay   = Number(parts[2]);
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  // データがある年を収集
+  var yearSet = new Set();
+  allData.forEach(function(row) {
+    var d = new Date(row.date);
+    yearSet.add(d.getFullYear());
+  });
+
+  var targetDate = new Date(targetYear, targetMonth-1, targetDay);
+
+  var allYears = Array.from(yearSet).filter(function(y) {
+    if (y < targetYear) return true;
+    if (y === targetYear) return targetDate <= today;
+    return false;
+  }).sort(function(a,b){ return b-a; });
+
+  var yearDataMap = {};
+  allData.forEach(function(row) {
+    var d = new Date(row.date);
+    if (d.getMonth()+1 === targetMonth && d.getDate() === targetDay) {
+      var y = d.getFullYear();
+      if (!yearDataMap[y]) yearDataMap[y] = [];
+      yearDataMap[y].push(row);
+    }
+  });
+
+  // 規格順にソート
+  Object.keys(yearDataMap).forEach(function(y) {
+    yearDataMap[y].sort(function(a,b) {
+      return GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
+    });
+  });
+
+  return allYears.map(function(year) {
+    return {
+      year:   year,
+      noData: !yearDataMap[year],
+      rows:   yearDataMap[year] || []
+    };
+  });
+}
+
+// ========== グラフ用データを返す ==========
+function getChartData(dateStr) {
+  var parts = dateStr.split('/');
+  var targetYear  = Number(parts[0]);
+  var targetMonth = Number(parts[1]);
+  var targetDay   = Number(parts[2]);
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  // 日付ごとに合計行＋規格別単価をまとめたマップ
+  var dateMap = {};
+  allData.forEach(function(row) {
+    var d = new Date(row.date);
+    var y  = d.getFullYear();
+    var mo = String(d.getMonth()+1).padStart(2,'0');
+    var dy = String(d.getDate()).padStart(2,'0');
+    var key = y+'/'+mo+'/'+dy;
+    if (!dateMap[key]) dateMap[key] = { qty: null, price: null, gradePrices: {} };
+    if (row.grade === '合計') {
+      dateMap[key].qty   = row.qty;
+      dateMap[key].price = row.price;
+    } else if (GRADE_ORDER_CHART.indexOf(row.grade) !== -1) {
+      dateMap[key].gradePrices[row.grade] = row.price;
+    }
+  });
+
+  var yearSet = new Set();
+  allData.forEach(function(row) {
+    yearSet.add(new Date(row.date).getFullYear());
+  });
+
+  var targetDate = new Date(targetYear, targetMonth-1, targetDay);
+  var years = Array.from(yearSet).filter(function(y) {
+    if (y < targetYear) return true;
+    if (y === targetYear) return targetDate <= today;
+    return false;
+  }).sort(function(a,b){ return b-a; });
+
+  var result = [];
+  years.forEach(function(year) {
+    var centerDate = new Date(year, targetMonth-1, targetDay);
+    var points = [];
+    for (var offset = -3; offset <= 3; offset++) {
+      var d = new Date(centerDate);
+      d.setDate(d.getDate() + offset);
+      var y  = d.getFullYear();
+      var mo = String(d.getMonth()+1).padStart(2,'0');
+      var dy = String(d.getDate()).padStart(2,'0');
+      var key = y+'/'+mo+'/'+dy;
+      var label = (d.getMonth()+1)+'/'+d.getDate();
+      var isCenter = (offset === 0);
+      var dPlain = new Date(y, d.getMonth(), d.getDate());
+      if (dPlain > today) continue;
+      if (dateMap[key] && dateMap[key].qty !== null) {
+        points.push({ date: key, label: label, qty: dateMap[key].qty, price: dateMap[key].price, gradePrices: dateMap[key].gradePrices, isCenter: isCenter, noData: false });
+      } else {
+        points.push({ date: key, label: label, qty: 0, price: 0, gradePrices: {}, isCenter: isCenter, noData: true });
+      }
+    }
+    if (points.length > 0) result.push({ year: year, points: points });
+  });
+  return result;
+}
+
+// ========== 画面描画 ==========
+function loadData() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('no-data').style.display = 'none';
+  document.getElementById('data-area').innerHTML = '';
+  document.getElementById('chart-area').innerHTML = '';
+  destroyCharts();
+  updateDateDisplay();
+
+  fetchAllData(function() {
+    document.getElementById('loading').style.display = 'none';
+    if (viewMode === 'list') {
+      renderData(getViewData(formatDate(currentDate)));
+    } else {
+      renderCharts(getChartData(formatDate(currentDate)));
+    }
+  });
+}
+
+function onError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('data-area').innerHTML = '<p style="color:red;text-align:center;padding:20px;">エラー: ' + msg + '</p>';
+}
+
+// ---- リスト表示 ----
+function renderData(result) {
+  var area = document.getElementById('data-area');
+  area.innerHTML = '';
+  document.getElementById('data-area').style.display = 'block';
+  document.getElementById('chart-area').style.display = 'none';
+  if (!result || result.length === 0) { document.getElementById('no-data').style.display = 'block'; return; }
+  var month = currentDate.getMonth()+1;
+  var day   = currentDate.getDate();
+  result.forEach(function(yearBlock) {
+    var block = document.createElement('div');
+    block.className = 'year-block';
+    if (yearBlock.noData) {
+      block.innerHTML = '<div class="year-header"><span class="year-header-year">'+yearBlock.year+'年</span><span class="year-header-date">'+month+'月'+day+'日</span></div><div style="padding:28px 24px;font-size:46px;color:#aaa;text-align:center;">水揚げなし</div>';
+    } else {
+      var rows = '';
+      yearBlock.rows.forEach(function(row) {
+        var isTotal = row.grade === '合計';
+        rows += '<tr class="'+(isTotal?'row-total':'')+'"><td>'+row.grade+'</td><td>'+Number(row.qty).toLocaleString()+'</td><td>'+Number(row.price).toLocaleString()+'</td><td>'+formatNote(row.note)+'</td></tr>';
+      });
+      block.innerHTML = '<div class="year-header"><span class="year-header-year">'+yearBlock.year+'年</span><span class="year-header-date">'+month+'月'+day+'日</span></div><table><thead><tr><th>規格</th><th>数量</th><th>単価</th><th>構成比</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+    area.appendChild(block);
+  });
+  setTimeout(adjustContentMargin, 50);
+}
+
+// ---- グラフ表示 ----
+function destroyCharts() {
+  chartInstances.forEach(function(c){ c.destroy(); });
+  chartInstances = [];
+}
+
+function makeLinePair(values, color, label, borderWidth, pointRadius) {
+  return [
+    { type:'line', label:label, data:values, borderColor:color, backgroundColor:'transparent', borderWidth:borderWidth, borderDash:[], pointRadius:pointRadius, pointBackgroundColor:color, tension:0, spanGaps:false, yAxisID:'yPrice', order:1 },
+    { type:'line', label:label+'_dot', data:values, borderColor:color, backgroundColor:'transparent', borderWidth:Math.max(1,borderWidth-1), borderDash:[6,4], pointRadius:0, tension:0, spanGaps:true, yAxisID:'yPrice', order:1 }
+  ];
+}
+
+function renderCharts(result) {
+  document.getElementById('data-area').style.display = 'none';
+  var area = document.getElementById('chart-area');
+  area.innerHTML = '';
+  area.style.display = 'block';
+  destroyCharts();
+  if (!result || result.length === 0) { document.getElementById('no-data').style.display = 'block'; return; }
+
+  var maxQty = 0;
+  result.forEach(function(yearData) { yearData.points.forEach(function(p){ if(p.qty>maxQty) maxQty=p.qty; }); });
+  var qtyMax = Math.ceil(maxQty*1.1/1000)*1000 || 1000;
+
+  result.forEach(function(yearData, yearIndex) {
+    var block = document.createElement('div');
+    block.className = 'chart-block';
+    var canvasId = 'chart-'+yearData.year;
+    var infoId   = 'info-'+yearData.year;
+    block.innerHTML =
+      '<div class="chart-header"><span class="chart-header-year">'+yearData.year+'年</span></div>'
+      +'<div class="chart-info" id="'+infoId+'"><div class="chart-info-hint">棒グラフをタッチすると詳細が表示されます</div></div>'
+      +'<div class="chart-wrap" id="wrap-'+canvasId+'"><canvas id="'+canvasId+'"></canvas></div>';
+    area.appendChild(block);
+
+    var labels   = yearData.points.map(function(p){ return p.label; });
+    var qtys     = yearData.points.map(function(p){ return p.qty; });
+    var bgColors = yearData.points.map(function(p){ return p.noData?'rgba(200,200,200,0.3)':p.isCenter?'rgba(251,188,4,0.85)':'rgba(26,115,232,0.55)'; });
+    var bdColors = yearData.points.map(function(p){ return p.noData?'rgba(180,180,180,0.5)':p.isCenter?'#f9a825':'#1a73e8'; });
+    var pricesForLine = yearData.points.map(function(p){ return p.noData?null:p.price; });
+
+    var gradeLines = [];
+    GRADE_ORDER_CHART.forEach(function(grade) {
+      var vals = yearData.points.map(function(p){ return p.noData?null:(p.gradePrices&&p.gradePrices[grade]!==undefined?p.gradePrices[grade]:null); });
+      if (vals.some(function(v){ return v!==null; })) gradeLines.push({ grade:grade, values:vals, color:GRADE_LINE_COLORS[grade] });
+    });
+
+    setTimeout(function() {
+      (function(infoId, points, canvasId, gradeLines) {
+        function showInfo(index) {
+          if (index<0||index>=points.length) return;
+          var p = points[index];
+          var el = document.getElementById(infoId);
+          var vc = p.isCenter?'#f9a825':'#333';
+          if (p.noData) {
+            el.innerHTML = '<div class="chart-info-date" style="color:#aaa;">'+p.label+'</div><div class="chart-info-row"><span class="chart-info-label">数量</span><span class="chart-info-value" style="color:#aaa;">0 kg（水揚げなし）</span></div><div class="chart-info-row"><span class="chart-info-label">平均単価</span><span class="chart-info-value" style="color:#aaa;">0 円/kg</span></div>';
+          } else {
+            el.innerHTML = '<div class="chart-info-date">'+p.label+(p.isCenter?'　★選択日':'')+'</div><div class="chart-info-row"><span class="chart-info-label">数量</span><span class="chart-info-value" style="color:'+vc+';">'+Number(p.qty).toLocaleString()+' kg</span></div><div class="chart-info-row"><span class="chart-info-label">平均単価</span><span class="chart-info-value" style="color:'+vc+';">'+Number(p.price).toLocaleString()+' 円/kg</span></div>';
+          }
+        }
+        var datasets = [{ type:'bar', label:'数量(kg)', data:qtys, backgroundColor:bgColors, borderColor:bdColors, borderWidth:2, yAxisID:'yQty', order:2 }];
+        var totalPair = makeLinePair(pricesForLine, '#e53935', '合計単価', 4, 8);
+        datasets = datasets.concat(totalPair);
+        gradeLines.forEach(function(gl) { datasets = datasets.concat(makeLinePair(gl.values, gl.color, gl.grade, 3, 5)); });
+
+        var ctx = document.getElementById(canvasId).getContext('2d');
+        var chart = new Chart(ctx, {
+          data: { labels: labels, datasets: datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { font:{size:22}, boxWidth:28, padding:12, filter: function(item){ return item.text.indexOf('_dot')===-1; } } },
+              tooltip: { enabled: false }
+            },
+            onClick: function(e,els){ if(els&&els.length>0) showInfo(els[0].index); },
+            onHover:  function(e,els){ if(els&&els.length>0) showInfo(els[0].index); },
+            scales: {
+              x: { ticks: { font:{size:26} } },
+              yQty: { type:'linear', position:'left', min:0, max:qtyMax, ticks:{ font:{size:22}, callback:function(v){ return (v/1000).toFixed(0)+'t'; } }, grid:{ drawOnChartArea:true } },
+              yPrice: { type:'linear', position:'right', min:400, max:1800, ticks:{ font:{size:22}, callback:function(v){ return v+'円'; } }, grid:{ drawOnChartArea:false } }
+            }
+          }
+        });
+        chartInstances.push(chart);
+
+        // 水揚げなし縦書きオーバーレイ
+        if (points.some(function(p){ return p.noData; })) {
+          var wrapEl = document.getElementById('wrap-'+canvasId);
+          points.forEach(function(p, idx) {
+            if (!p.noData) return;
+            setTimeout(function() {
+              var ca = chart.chartArea;
+              var nPoints = points.length;
+              var segW = (ca.right-ca.left)/nPoints;
+              var cx = ca.left+segW*idx+segW/2;
+              var overlay = document.createElement('div');
+              overlay.className = 'no-data-label';
+              overlay.style.position='absolute'; overlay.style.left=(cx-segW*0.45)+'px'; overlay.style.width=(segW*0.9)+'px'; overlay.style.top=ca.top+'px'; overlay.style.height=(ca.bottom-ca.top)+'px';
+              overlay.innerHTML = '<span class="no-data-label-text">水揚げなし</span>';
+              wrapEl.appendChild(overlay);
+            }, 200);
+          });
+        }
+      })(infoId, yearData.points, canvasId, gradeLines);
+    }, yearIndex * 150);
+  });
+  setTimeout(adjustContentMargin, 50);
+}
+
+// ========== ボタンイベント ==========
+document.getElementById('btn-toggle').addEventListener('click', function() {
+  if (viewMode==='list') { viewMode='chart'; this.textContent='📋　リスト表示'; }
+  else { viewMode='list'; this.textContent='📊　グラフ表示'; }
+  loadData();
+});
+document.getElementById('btn-prev').addEventListener('click', function(){ currentDate.setDate(currentDate.getDate()-1); loadData(); });
+document.getElementById('btn-next').addEventListener('click', function(){ currentDate.setDate(currentDate.getDate()+1); loadData(); });
+document.getElementById('btn-today').addEventListener('click', function(){ currentDate=new Date(); loadData(); });
+document.getElementById('btn-cal').addEventListener('click', function(){
+  var p = document.getElementById('cal-panel');
+  p.classList.contains('open') ? p.classList.remove('open') : p.classList.add('open');
+  setTimeout(adjustContentMargin, 350);
+});
+document.getElementById('btn-cal-ok').addEventListener('click', function(){
+  var val = document.getElementById('date-input').value;
+  if (val) {
+    var parts = val.split('-');
+    currentDate = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+    document.getElementById('cal-panel').classList.remove('open');
+    setTimeout(adjustContentMargin, 350);
+    loadData();
+  }
+});
+document.getElementById('btn-cal-cancel').addEventListener('click', function(){
+  document.getElementById('cal-panel').classList.remove('open');
+  setTimeout(adjustContentMargin, 350);
+  updateDateDisplay();
+});
+
+// ========== 初期表示 ==========
+updateDateDisplay();
+loadData();
+</script>
+</body>
+</html>
