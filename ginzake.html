@@ -294,8 +294,10 @@ function renderCharts(result){
           points.forEach(function(p,idx){
             if(!p.noData) return;
             setTimeout(function(){
-              var ca=chart.chartArea,n=points.length,sw=(ca.right-ca.left)/n,cx=ca.left+sw*idx+sw/2;
-              var ow=sw*0.9;
+              var ca=chart.chartArea;
+              var xScale=chart.scales['x'];
+              var cx=xScale.getPixelForTick(idx);
+              var ow=(ca.right-ca.left)/points.length*0.8;
               var ov=document.createElement('div'); ov.className='no-data-label';
               ov.style.cssText='position:absolute;left:'+(cx-ow/2)+'px;width:'+ow+'px;top:'+ca.top+'px;height:'+(ca.bottom-ca.top)+'px;';
               ov.innerHTML='<span class="no-data-label-text">水揚げなし</span>';
