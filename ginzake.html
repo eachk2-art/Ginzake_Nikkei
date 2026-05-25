@@ -295,8 +295,9 @@ function renderCharts(result){
             if(!p.noData) return;
             setTimeout(function(){
               var ca=chart.chartArea,n=points.length,sw=(ca.right-ca.left)/n,cx=ca.left+sw*idx+sw/2;
+              var ow=sw*0.9;
               var ov=document.createElement('div'); ov.className='no-data-label';
-              ov.style.cssText='position:absolute;left:'+(cx-sw*0.45)+'px;width:'+(sw*0.9)+'px;top:'+ca.top+'px;height:'+(ca.bottom-ca.top)+'px;';
+              ov.style.cssText='position:absolute;left:'+(cx-ow/2)+'px;width:'+ow+'px;top:'+ca.top+'px;height:'+(ca.bottom-ca.top)+'px;';
               ov.innerHTML='<span class="no-data-label-text">水揚げなし</span>';
               wEl.appendChild(ov);
             },200);
