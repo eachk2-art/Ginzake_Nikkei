@@ -8,62 +8,56 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #333; font-size: 14px; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #333; font-size: 16px; }
 
-  /* ヘッダー */
-  #header { position: fixed; top: 0; left: 0; right: 0; background: #1a73e8; color: white; z-index: 100; padding: 10px 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-  #header-title { font-size: 12px; opacity: 0.85; margin-bottom: 2px; }
-  #current-date { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
-  #btn-row, #btn-row-2 { display: flex; gap: 8px; margin-bottom: 6px; }
-  .btn { border: none; border-radius: 8px; padding: 8px 4px; font-size: 13px; font-weight: bold; cursor: pointer; flex: 1; }
+  #header { position: fixed; top: 0; left: 0; right: 0; background: #1a73e8; color: white; z-index: 100; padding: 12px 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  #header-title { font-size: 14px; opacity: 0.85; margin-bottom: 4px; }
+  #current-date { font-size: 32px; font-weight: bold; margin-bottom: 10px; line-height: 1.1; }
+  #btn-row, #btn-row-2 { display: flex; gap: 8px; margin-bottom: 8px; }
+  .btn { border: none; border-radius: 10px; padding: 12px 6px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1; min-height: 48px; }
   .btn-nav { background: rgba(255,255,255,0.25); color: white; }
   .btn-today { background: white; color: #1a73e8; }
-  .btn-cal-wide { background: rgba(255,255,255,0.15); color: white; border: 2px solid #e53935; border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
-  .btn-toggle { background: #fbbc04; color: #333; border: none; border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+  .btn-cal-wide { background: rgba(255,255,255,0.15); color: white; border: 2px solid #e53935; border-radius: 10px; padding: 10px 6px; font-size: 15px; font-weight: bold; cursor: pointer; flex: 1; min-height: 46px; }
+  .btn-toggle { background: #fbbc04; color: #333; border: none; border-radius: 10px; padding: 10px 6px; font-size: 15px; font-weight: bold; cursor: pointer; flex: 1; min-height: 46px; }
 
-  /* カレンダーパネル */
   #cal-panel { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
   #cal-panel.open { max-height: 200px; padding: 8px 0 0; }
-  #cal-inner { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-  #date-input { width: 100%; padding: 8px; border: none; border-radius: 6px; font-size: 15px; background: white; color: #333; }
-  #cal-btn-row { display: flex; gap: 8px; }
-  #btn-cal-ok { flex: 1; background: #fbbc04; color: #333; border: none; border-radius: 6px; padding: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
-  #btn-cal-cancel { flex: 0.4; background: rgba(255,255,255,0.25); color: white; border: none; border-radius: 6px; padding: 8px; font-size: 14px; cursor: pointer; }
+  #cal-inner { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  #date-input { width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 18px; background: white; color: #333; }
+  #cal-btn-row { display: flex; gap: 10px; }
+  #btn-cal-ok { flex: 1; background: #fbbc04; color: #333; border: none; border-radius: 8px; padding: 10px; font-size: 17px; font-weight: bold; cursor: pointer; }
+  #btn-cal-cancel { flex: 0.4; background: rgba(255,255,255,0.25); color: white; border: none; border-radius: 8px; padding: 10px; font-size: 17px; cursor: pointer; }
 
-  /* コンテンツ */
-  #content { padding: 12px; }
+  #content { padding: 14px; }
 
-  /* 年ブロック（リスト） */
-  .year-block { margin-bottom: 16px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-  .year-header { background: #1a73e8; color: white; padding: 10px 14px; display: flex; align-items: baseline; gap: 10px; }
-  .year-header-year { font-size: 18px; font-weight: bold; }
-  .year-header-date { font-size: 14px; }
+  .year-block { margin-bottom: 20px; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .year-header { background: #1a73e8; color: white; padding: 12px 16px; display: flex; align-items: baseline; gap: 12px; }
+  .year-header-year { font-size: 22px; font-weight: bold; }
+  .year-header-date { font-size: 16px; }
   table { width: 100%; border-collapse: collapse; }
   thead tr { background: #e8f0fe; }
-  th { padding: 8px 10px; font-size: 12px; color: #555; text-align: right; border-bottom: 1px solid #ddd; white-space: nowrap; }
+  th { padding: 10px 12px; font-size: 14px; color: #555; text-align: right; border-bottom: 1px solid #ddd; white-space: nowrap; }
   th:first-child { text-align: left; }
-  td { padding: 9px 10px; font-size: 14px; text-align: right; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  td { padding: 13px 12px; font-size: 18px; text-align: right; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
   td:first-child { text-align: left; }
   .row-total { font-weight: bold; background: #fff8e1; }
-  .row-total td { border-top: 2px solid #ddd; border-bottom: none; font-size: 15px; }
+  .row-total td { border-top: 2px solid #ddd; border-bottom: none; font-size: 20px; }
 
-  /* グラフブロック */
-  .chart-block { margin-bottom: 16px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-  .chart-header { background: #1a73e8; color: white; padding: 10px 14px; }
-  .chart-header-year { font-size: 18px; font-weight: bold; }
-  .chart-info { background: #f0f4ff; border-bottom: 2px solid #dde; padding: 10px 14px; min-height: 70px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-  .chart-info-hint { font-size: 12px; color: #aaa; text-align: center; }
-  .chart-info-date { font-size: 15px; font-weight: bold; color: #1a73e8; }
-  .chart-info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #dde; }
-  .chart-info-label { font-size: 13px; color: #555; }
-  .chart-info-value { font-size: 16px; font-weight: bold; color: #333; }
-  .chart-wrap { padding: 10px; position: relative; height: 240px; }
+  .chart-block { margin-bottom: 20px; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .chart-header { background: #1a73e8; color: white; padding: 12px 16px; }
+  .chart-header-year { font-size: 22px; font-weight: bold; }
+  .chart-info { background: #f0f4ff; border-bottom: 2px solid #dde; padding: 12px 16px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .chart-info-hint { font-size: 14px; color: #aaa; text-align: center; }
+  .chart-info-date { font-size: 18px; font-weight: bold; color: #1a73e8; }
+  .chart-info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid #dde; }
+  .chart-info-label { font-size: 15px; color: #555; }
+  .chart-info-value { font-size: 22px; font-weight: bold; color: #333; }
+  .chart-wrap { padding: 12px; position: relative; height: 280px; }
 
-  /* ローディング */
-  #loading { text-align: center; padding: 30px; color: #888; font-size: 15px; }
-  #no-data { text-align: center; padding: 30px; color: #aaa; font-size: 15px; display: none; }
+  #loading { text-align: center; padding: 40px; color: #888; font-size: 18px; }
+  #no-data { text-align: center; padding: 40px; color: #aaa; font-size: 18px; display: none; }
   .no-data-label { position: absolute; top: 0; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-  .no-data-label-text { writing-mode: vertical-rl; font-size: 13px; font-weight: bold; color: rgba(150,150,150,0.75); letter-spacing: 4px; }
+  .no-data-label-text { writing-mode: vertical-rl; font-size: 15px; font-weight: bold; color: rgba(150,150,150,0.75); letter-spacing: 4px; }
 </style>
 </head>
 <body>
@@ -124,77 +118,71 @@ function formatDateForInput(d) {
 }
 function formatNote(note) {
   if (note===null||note===undefined||note==='') return '—';
-  var str = String(note).trim();
+  var str=String(note).trim();
   if (str.indexOf('%')!==-1) return str;
-  var num = parseFloat(str);
+  var num=parseFloat(str);
   if (isNaN(num)) return str;
   return num.toFixed(1)+'%';
 }
 function adjustContentMargin() {
-  document.getElementById('content').style.marginTop = (document.getElementById('header').offsetHeight+8)+'px';
+  document.getElementById('content').style.marginTop=(document.getElementById('header').offsetHeight+8)+'px';
 }
 function updateDateDisplay() {
-  document.getElementById('current-date').textContent = formatDateDisplay(currentDate);
-  document.getElementById('date-input').value = formatDateForInput(currentDate);
-  setTimeout(adjustContentMargin, 50);
+  document.getElementById('current-date').textContent=formatDateDisplay(currentDate);
+  document.getElementById('date-input').value=formatDateForInput(currentDate);
+  setTimeout(adjustContentMargin,50);
 }
 
 function fetchAllData(callback) {
   if (dataLoaded) { callback(); return; }
-  var url = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(SHEET_NAME+'!A:H')+'?key='+API_KEY;
-  fetch(url).then(function(r){ return r.json(); }).then(function(json) {
-    var rows = json.values || [];
-    allData = [];
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(SHEET_NAME+'!A:H')+'?key='+API_KEY;
+  fetch(url).then(function(r){ return r.json(); }).then(function(json){
+    var rows=json.values||[]; allData=[];
     for (var i=1;i<rows.length;i++) {
-      var r=rows[i]; if (!r[0]) continue;
-      allData.push({ date:String(r[0]).trim(), grade:r[2]||'', qty:parseFloat(r[3])||0, amount:parseFloat(r[4])||0, price:parseFloat(r[5])||0, note:r[6]||'' });
+      var r=rows[i]; if(!r[0]) continue;
+      allData.push({date:String(r[0]).trim(),grade:r[2]||'',qty:parseFloat(r[3])||0,price:parseFloat(r[5])||0,note:r[6]||''});
     }
-    dataLoaded = true; callback();
-  }).catch(function(err){ document.getElementById('loading').textContent='データの読み込みに失敗しました'; });
+    dataLoaded=true; callback();
+  }).catch(function(){ document.getElementById('loading').textContent='データの読み込みに失敗しました'; });
 }
 
 function getViewData(dateStr) {
-  var parts=dateStr.split('/'), tY=Number(parts[0]), tM=Number(parts[1]), tD=Number(parts[2]);
+  var parts=dateStr.split('/'),tY=Number(parts[0]),tM=Number(parts[1]),tD=Number(parts[2]);
   var today=new Date(); today.setHours(0,0,0,0);
-  var yearSet=new Set();
-  allData.forEach(function(r){ yearSet.add(new Date(r.date).getFullYear()); });
+  var yearSet=new Set(); allData.forEach(function(r){ yearSet.add(new Date(r.date).getFullYear()); });
   var tDate=new Date(tY,tM-1,tD);
   var years=Array.from(yearSet).filter(function(y){ return y<tY||(y===tY&&tDate<=today); }).sort(function(a,b){ return b-a; });
   var map={};
   allData.forEach(function(r){
     var d=new Date(r.date);
-    if (d.getMonth()+1===tM&&d.getDate()===tD) {
-      var y=d.getFullYear(); if(!map[y]) map[y]=[];
-      map[y].push(r);
-    }
+    if(d.getMonth()+1===tM&&d.getDate()===tD){ var y=d.getFullYear(); if(!map[y]) map[y]=[]; map[y].push(r); }
   });
   Object.keys(map).forEach(function(y){ map[y].sort(function(a,b){ return GRADE_ORDER.indexOf(a.grade)-GRADE_ORDER.indexOf(b.grade); }); });
-  return years.map(function(y){ return { year:y, noData:!map[y], rows:map[y]||[] }; });
+  return years.map(function(y){ return {year:y,noData:!map[y],rows:map[y]||[]}; });
 }
 
 function getChartData(dateStr) {
-  var parts=dateStr.split('/'), tY=Number(parts[0]), tM=Number(parts[1]), tD=Number(parts[2]);
+  var parts=dateStr.split('/'),tY=Number(parts[0]),tM=Number(parts[1]),tD=Number(parts[2]);
   var today=new Date(); today.setHours(0,0,0,0);
   var dateMap={};
   allData.forEach(function(r){
     var d=new Date(r.date);
     var key=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
-    if (!dateMap[key]) dateMap[key]={qty:null,price:null,gradePrices:{}};
-    if (r.grade==='合計') { dateMap[key].qty=r.qty; dateMap[key].price=r.price; }
-    else if (GRADE_ORDER_CHART.indexOf(r.grade)!==-1) dateMap[key].gradePrices[r.grade]=r.price;
+    if(!dateMap[key]) dateMap[key]={qty:null,price:null,gradePrices:{}};
+    if(r.grade==='合計'){dateMap[key].qty=r.qty;dateMap[key].price=r.price;}
+    else if(GRADE_ORDER_CHART.indexOf(r.grade)!==-1) dateMap[key].gradePrices[r.grade]=r.price;
   });
   var yearSet=new Set(); allData.forEach(function(r){ yearSet.add(new Date(r.date).getFullYear()); });
   var tDate=new Date(tY,tM-1,tD);
   var years=Array.from(yearSet).filter(function(y){ return y<tY||(y===tY&&tDate<=today); }).sort(function(a,b){ return b-a; });
   return years.map(function(year){
-    var cDate=new Date(year,tM-1,tD), points=[];
-    for (var off=-3;off<=3;off++) {
+    var cDate=new Date(year,tM-1,tD),points=[];
+    for(var off=-3;off<=3;off++){
       var d=new Date(cDate); d.setDate(d.getDate()+off);
       var key=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
       var label=(d.getMonth()+1)+'/'+d.getDate();
-      var dPlain=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-      if (dPlain>today) continue;
-      if (dateMap[key]&&dateMap[key].qty!==null) points.push({label:label,qty:dateMap[key].qty,price:dateMap[key].price,gradePrices:dateMap[key].gradePrices,isCenter:off===0,noData:false});
+      if(new Date(d.getFullYear(),d.getMonth(),d.getDate())>today) continue;
+      if(dateMap[key]&&dateMap[key].qty!==null) points.push({label:label,qty:dateMap[key].qty,price:dateMap[key].price,gradePrices:dateMap[key].gradePrices,isCenter:off===0,noData:false});
       else points.push({label:label,qty:0,price:0,gradePrices:{},isCenter:off===0,noData:true});
     }
     return {year:year,points:points};
@@ -209,7 +197,7 @@ function loadData() {
   destroyCharts(); updateDateDisplay();
   fetchAllData(function(){
     document.getElementById('loading').style.display='none';
-    if (viewMode==='list') renderData(getViewData(formatDate(currentDate)));
+    if(viewMode==='list') renderData(getViewData(formatDate(currentDate)));
     else renderCharts(getChartData(formatDate(currentDate)));
   });
 }
@@ -218,12 +206,12 @@ function renderData(result) {
   var area=document.getElementById('data-area');
   area.innerHTML=''; area.style.display='block';
   document.getElementById('chart-area').style.display='none';
-  if (!result||result.length===0) { document.getElementById('no-data').style.display='block'; return; }
-  var month=currentDate.getMonth()+1, day=currentDate.getDate();
+  if(!result||result.length===0){document.getElementById('no-data').style.display='block';return;}
+  var month=currentDate.getMonth()+1,day=currentDate.getDate();
   result.forEach(function(yb){
     var block=document.createElement('div'); block.className='year-block';
-    if (yb.noData) {
-      block.innerHTML='<div class="year-header"><span class="year-header-year">'+yb.year+'年</span><span class="year-header-date">'+month+'月'+day+'日</span></div><div style="padding:16px;color:#aaa;text-align:center;">水揚げなし</div>';
+    if(yb.noData){
+      block.innerHTML='<div class="year-header"><span class="year-header-year">'+yb.year+'年</span><span class="year-header-date">'+month+'月'+day+'日</span></div><div style="padding:20px;color:#aaa;text-align:center;font-size:17px;">水揚げなし</div>';
     } else {
       var rows='';
       yb.rows.forEach(function(r){
@@ -237,76 +225,76 @@ function renderData(result) {
   setTimeout(adjustContentMargin,50);
 }
 
-function destroyCharts() { chartInstances.forEach(function(c){ c.destroy(); }); chartInstances=[]; }
+function destroyCharts(){ chartInstances.forEach(function(c){c.destroy();}); chartInstances=[]; }
 
-function makeLinePair(values,color,label,bw,pr) {
+function makeLinePair(values,color,label,bw,pr){
   return [
     {type:'line',label:label,data:values,borderColor:color,backgroundColor:'transparent',borderWidth:bw,borderDash:[],pointRadius:pr,pointBackgroundColor:color,tension:0,spanGaps:false,yAxisID:'yPrice',order:1},
     {type:'line',label:label+'_dot',data:values,borderColor:color,backgroundColor:'transparent',borderWidth:Math.max(1,bw-1),borderDash:[6,4],pointRadius:0,tension:0,spanGaps:true,yAxisID:'yPrice',order:1}
   ];
 }
 
-function renderCharts(result) {
+function renderCharts(result){
   document.getElementById('data-area').style.display='none';
   var area=document.getElementById('chart-area'); area.innerHTML=''; area.style.display='block';
   destroyCharts();
-  if (!result||result.length===0) { document.getElementById('no-data').style.display='block'; return; }
-  var maxQty=0; result.forEach(function(yd){ yd.points.forEach(function(p){ if(p.qty>maxQty) maxQty=p.qty; }); });
+  if(!result||result.length===0){document.getElementById('no-data').style.display='block';return;}
+  var maxQty=0; result.forEach(function(yd){yd.points.forEach(function(p){if(p.qty>maxQty)maxQty=p.qty;});});
   var qtyMax=Math.ceil(maxQty*1.1/1000)*1000||1000;
 
   result.forEach(function(yd,yi){
     var block=document.createElement('div'); block.className='chart-block';
-    var cid='chart-'+yd.year, iid='info-'+yd.year;
+    var cid='chart-'+yd.year,iid='info-'+yd.year;
     block.innerHTML='<div class="chart-header"><span class="chart-header-year">'+yd.year+'年</span></div><div class="chart-info" id="'+iid+'"><div class="chart-info-hint">棒グラフをタップすると詳細表示</div></div><div class="chart-wrap" id="wrap-'+cid+'"><canvas id="'+cid+'"></canvas></div>';
     area.appendChild(block);
 
-    var labels=yd.points.map(function(p){ return p.label; });
-    var qtys=yd.points.map(function(p){ return p.qty; });
-    var bgC=yd.points.map(function(p){ return p.noData?'rgba(200,200,200,0.3)':p.isCenter?'rgba(251,188,4,0.85)':'rgba(26,115,232,0.55)'; });
-    var bdC=yd.points.map(function(p){ return p.noData?'rgba(180,180,180,0.5)':p.isCenter?'#f9a825':'#1a73e8'; });
-    var pfl=yd.points.map(function(p){ return p.noData?null:p.price; });
+    var labels=yd.points.map(function(p){return p.label;});
+    var qtys=yd.points.map(function(p){return p.qty;});
+    var bgC=yd.points.map(function(p){return p.noData?'rgba(200,200,200,0.3)':p.isCenter?'rgba(251,188,4,0.85)':'rgba(26,115,232,0.55)';});
+    var bdC=yd.points.map(function(p){return p.noData?'rgba(180,180,180,0.5)':p.isCenter?'#f9a825':'#1a73e8';});
+    var pfl=yd.points.map(function(p){return p.noData?null:p.price;});
     var gradeLines=[];
     GRADE_ORDER_CHART.forEach(function(g){
-      var vals=yd.points.map(function(p){ return p.noData?null:(p.gradePrices&&p.gradePrices[g]!==undefined?p.gradePrices[g]:null); });
-      if (vals.some(function(v){ return v!==null; })) gradeLines.push({grade:g,values:vals,color:GRADE_LINE_COLORS[g]});
+      var vals=yd.points.map(function(p){return p.noData?null:(p.gradePrices&&p.gradePrices[g]!==undefined?p.gradePrices[g]:null);});
+      if(vals.some(function(v){return v!==null;})) gradeLines.push({grade:g,values:vals,color:GRADE_LINE_COLORS[g]});
     });
 
     setTimeout(function(){
       (function(iid,points,cid,gradeLines){
         function showInfo(idx){
           if(idx<0||idx>=points.length) return;
-          var p=points[idx], el=document.getElementById(iid), vc=p.isCenter?'#f9a825':'#333';
+          var p=points[idx],el=document.getElementById(iid),vc=p.isCenter?'#f9a825':'#333';
           if(p.noData) el.innerHTML='<div class="chart-info-date" style="color:#aaa;">'+p.label+'</div><div class="chart-info-row"><span class="chart-info-label">数量</span><span class="chart-info-value" style="color:#aaa;">0 kg（水揚げなし）</span></div>';
           else el.innerHTML='<div class="chart-info-date">'+p.label+(p.isCenter?'　★選択日':'')+'</div><div class="chart-info-row"><span class="chart-info-label">数量</span><span class="chart-info-value" style="color:'+vc+';">'+Number(p.qty).toLocaleString()+' kg</span></div><div class="chart-info-row"><span class="chart-info-label">平均単価</span><span class="chart-info-value" style="color:'+vc+';">'+Number(p.price).toLocaleString()+' 円/kg</span></div>';
         }
         var datasets=[{type:'bar',label:'数量(kg)',data:qtys,backgroundColor:bgC,borderColor:bdC,borderWidth:2,yAxisID:'yQty',order:2}];
-        datasets=datasets.concat(makeLinePair(pfl,'#e53935','合計単価',2,4));
-        gradeLines.forEach(function(gl){ datasets=datasets.concat(makeLinePair(gl.values,gl.color,gl.grade,1.5,3)); });
+        datasets=datasets.concat(makeLinePair(pfl,'#e53935','合計単価',2,5));
+        gradeLines.forEach(function(gl){datasets=datasets.concat(makeLinePair(gl.values,gl.color,gl.grade,2,4));});
         var ctx=document.getElementById(cid).getContext('2d');
         var chart=new Chart(ctx,{
           data:{labels:labels,datasets:datasets},
           options:{
             responsive:true,maintainAspectRatio:false,
             plugins:{
-              legend:{labels:{font:{size:10},boxWidth:14,padding:6,filter:function(i){ return i.text.indexOf('_dot')===-1; }}},
+              legend:{labels:{font:{size:12},boxWidth:16,padding:8,filter:function(i){return i.text.indexOf('_dot')===-1;}}},
               tooltip:{enabled:false}
             },
-            onClick:function(e,els){ if(els&&els.length>0) showInfo(els[0].index); },
-            onHover:function(e,els){ if(els&&els.length>0) showInfo(els[0].index); },
+            onClick:function(e,els){if(els&&els.length>0)showInfo(els[0].index);},
+            onHover:function(e,els){if(els&&els.length>0)showInfo(els[0].index);},
             scales:{
-              x:{ticks:{font:{size:10}}},
-              yQty:{type:'linear',position:'left',min:0,max:qtyMax,ticks:{font:{size:10},callback:function(v){ return (v/1000).toFixed(0)+'t'; }},grid:{drawOnChartArea:true}},
-              yPrice:{type:'linear',position:'right',min:400,max:1800,ticks:{font:{size:10},callback:function(v){ return v+'円'; }},grid:{drawOnChartArea:false}}
+              x:{ticks:{font:{size:12}}},
+              yQty:{type:'linear',position:'left',min:0,max:qtyMax,ticks:{font:{size:11},callback:function(v){return(v/1000).toFixed(0)+'t';}},grid:{drawOnChartArea:true}},
+              yPrice:{type:'linear',position:'right',min:400,max:1800,ticks:{font:{size:11},callback:function(v){return v+'円';}},grid:{drawOnChartArea:false}}
             }
           }
         });
         chartInstances.push(chart);
-        if (points.some(function(p){ return p.noData; })) {
+        if(points.some(function(p){return p.noData;})){
           var wEl=document.getElementById('wrap-'+cid);
           points.forEach(function(p,idx){
             if(!p.noData) return;
             setTimeout(function(){
-              var ca=chart.chartArea, n=points.length, sw=(ca.right-ca.left)/n, cx=ca.left+sw*idx+sw/2;
+              var ca=chart.chartArea,n=points.length,sw=(ca.right-ca.left)/n,cx=ca.left+sw*idx+sw/2;
               var ov=document.createElement('div'); ov.className='no-data-label';
               ov.style.cssText='position:absolute;left:'+(cx-sw*0.45)+'px;width:'+(sw*0.9)+'px;top:'+ca.top+'px;height:'+(ca.bottom-ca.top)+'px;';
               ov.innerHTML='<span class="no-data-label-text">水揚げなし</span>';
@@ -321,13 +309,13 @@ function renderCharts(result) {
 }
 
 document.getElementById('btn-toggle').addEventListener('click',function(){
-  if(viewMode==='list'){ viewMode='chart'; this.textContent='📋 リスト表示'; }
-  else { viewMode='list'; this.textContent='📊 グラフ表示'; }
+  if(viewMode==='list'){viewMode='chart';this.textContent='📋 リスト表示';}
+  else{viewMode='list';this.textContent='📊 グラフ表示';}
   loadData();
 });
-document.getElementById('btn-prev').addEventListener('click',function(){ currentDate.setDate(currentDate.getDate()-1); loadData(); });
-document.getElementById('btn-next').addEventListener('click',function(){ currentDate.setDate(currentDate.getDate()+1); loadData(); });
-document.getElementById('btn-today').addEventListener('click',function(){ currentDate=new Date(); loadData(); });
+document.getElementById('btn-prev').addEventListener('click',function(){currentDate.setDate(currentDate.getDate()-1);loadData();});
+document.getElementById('btn-next').addEventListener('click',function(){currentDate.setDate(currentDate.getDate()+1);loadData();});
+document.getElementById('btn-today').addEventListener('click',function(){currentDate=new Date();loadData();});
 document.getElementById('btn-cal').addEventListener('click',function(){
   var p=document.getElementById('cal-panel');
   p.classList.contains('open')?p.classList.remove('open'):p.classList.add('open');
@@ -335,10 +323,10 @@ document.getElementById('btn-cal').addEventListener('click',function(){
 });
 document.getElementById('btn-cal-ok').addEventListener('click',function(){
   var val=document.getElementById('date-input').value;
-  if(val){ var pts=val.split('-'); currentDate=new Date(Number(pts[0]),Number(pts[1])-1,Number(pts[2])); document.getElementById('cal-panel').classList.remove('open'); setTimeout(adjustContentMargin,350); loadData(); }
+  if(val){var pts=val.split('-');currentDate=new Date(Number(pts[0]),Number(pts[1])-1,Number(pts[2]));document.getElementById('cal-panel').classList.remove('open');setTimeout(adjustContentMargin,350);loadData();}
 });
 document.getElementById('btn-cal-cancel').addEventListener('click',function(){
-  document.getElementById('cal-panel').classList.remove('open'); setTimeout(adjustContentMargin,350); updateDateDisplay();
+  document.getElementById('cal-panel').classList.remove('open');setTimeout(adjustContentMargin,350);updateDateDisplay();
 });
 
 updateDateDisplay();
