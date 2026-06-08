@@ -56,7 +56,7 @@
   .chart-info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid #dde; }
   .chart-info-label { font-size: 15px; color: #555; }
   .chart-info-value { font-size: 22px; font-weight: bold; color: #333; }
-  .chart-wrap { padding: 12px; position: relative; height: 280px; }
+  .chart-wrap { padding: 12px; position: relative; height: 400px; }
 
   #loading { text-align: center; padding: 40px; color: #888; font-size: 18px; }
   #no-data { text-align: center; padding: 40px; color: #aaa; font-size: 18px; display: none; }
@@ -286,11 +286,11 @@ function renderCharts(result){
   var priceLo, priceHi;
   if(minP===Infinity){ priceLo=600; priceHi=1000; }   // データなし時のフォールバック
   else {
-    var pad=Math.max((maxP-minP)*0.08, 20);
+    var pad=Math.max((maxP-minP)*0.04, 10);
     priceLo=minP-pad; priceHi=maxP+pad;
     if(priceHi-priceLo<100){ var c=(priceHi+priceLo)/2; priceLo=c-50; priceHi=c+50; }  // 動きが小さい日でも拡大しすぎない
-    priceLo=Math.max(0, Math.floor(priceLo/20)*20);    // 20円単位に丸め
-    priceHi=Math.ceil(priceHi/20)*20;
+    priceLo=Math.max(0, Math.floor(priceLo/10)*10);    // 10円単位に丸め
+    priceHi=Math.ceil(priceHi/10)*10;
   }
 
   result.forEach(function(yd,yi){
