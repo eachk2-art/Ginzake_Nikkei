@@ -269,6 +269,30 @@ function renderCharts(result){
   var maxQty=0; result.forEach(function(yd){yd.points.forEach(function(p){if(p.qty>maxQty)maxQty=p.qty;});});
   var qtyMax=Math.ceil(maxQty*1.1/1000)*1000||1000;
 
+  // 単価軸の共通スケール（表示中の全年・全規格の単価から自動算出）
+  var minP=Infinity, maxP=-Infinity;
+  result.forEach(function(yd){
+    yd.points.forEach(function(p){
+      if(p.noData) return;
+      if(typeof p.price==='number' && p.price>0){ if(p.price<minP)minP=p.price; if(p.price>maxP)maxP=p.price; }
+      if(p.gradePrices){
+        for(var g in p.gradePrices){
+          var v=p.gradePrices[g];
+          if(typeof v==='number' && v>0){ if(v<minP)minP=v; if(v>maxP)maxP=v; }
+        }
+      }
+    });
+  });
+  var priceLo, priceHi;
+  if(minP===Infinity){ priceLo=600; priceHi=1000; }   // データなし時のフォールバック
+  else {
+    var pad=Math.max((maxP-minP)*0.08, 20);
+    priceLo=minP-pad; priceHi=maxP+pad;
+    if(priceHi-priceLo<100){ var c=(priceHi+priceLo)/2; priceLo=c-50; priceHi=c+50; }  // 動きが小さい日でも拡大しすぎない
+    priceLo=Math.max(0, Math.floor(priceLo/20)*20);    // 20円単位に丸め
+    priceHi=Math.ceil(priceHi/20)*20;
+  }
+
   result.forEach(function(yd,yi){
     var block=document.createElement('div'); block.className='chart-block';
     var cid='chart-'+yd.year,iid='info-'+yd.year;
@@ -311,7 +335,7 @@ function renderCharts(result){
             scales:{
               x:{ticks:{font:{size:12}}},
               yQty:{type:'linear',position:'left',min:0,max:qtyMax,ticks:{font:{size:11},callback:function(v){return(v/1000).toFixed(0)+'t';}},grid:{drawOnChartArea:true}},
-              yPrice:{type:'linear',position:'right',min:400,max:1800,ticks:{font:{size:11},callback:function(v){return v+'円';}},grid:{drawOnChartArea:false}}
+              yPrice:{type:'linear',position:'right',min:priceLo,max:priceHi,ticks:{font:{size:11},callback:function(v){return v+'円';}},grid:{drawOnChartArea:false}}
             }
           }
         });
