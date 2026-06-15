@@ -157,8 +157,9 @@ function loadHistory() {
       setStatus('ok', historyData.length + '件の送信履歴');
       renderHistory(historyData);
     })
-    .catch(() => {
+    .catch(err => {
       setStatus('error', 'データの読み込みに失敗しました');
+      console.error('エラー詳細:', err);
     });
 }
 
