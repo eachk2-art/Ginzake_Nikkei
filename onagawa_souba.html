@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>女川相場表作成</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #222; font-size: 16px; }
+
+#header {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #00695c; color: white; z-index: 100;
+  padding: 12px 16px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+#header-title { font-size: 11px; opacity: 0.8; margin-bottom: 2px; }
+#header-main { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+#header-btns { display: flex; gap: 6px; }
+.hbtn {
+  flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
+  font-size: 13px; font-weight: bold; cursor: pointer; min-height: 46px;
+}
+.hbtn-reload { background: rgba(255,255,255,0.2); color: white; }
+.hbtn-preview { background: #80cbc4; color: #004d40; }
+.hbtn-pdf { background: white; color: #00695c; }
+.hbtn-mail { background: #004d40; color: white; border: 2px solid rgba(255,255,255,0.3); }
+.hbtn-settings { background: rgba(255,255,255,0.15); color: white; }
+
+#content { padding: 14px; margin-top: 120px; }
+
+#status-bar {
+  background: white; border-radius: 12px; padding: 12px 16px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+#status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+#status-dot.ok { background: #43a047; }
+#status-dot.loading { background: #fb8c00; animation: pulse 1s infinite; }
+#status-dot.error { background: #e53935; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+#status-text { font-size: 14px; color: #555; flex: 1; }
+
+#date-section {
+  background: white; border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+#date-section label { font-size: 12px; color: #888; display: block; margin-bottom: 6px; }
+#date-input {
+  width: 100%; padding: 12px; border: 2px solid #b2dfdb;
+  border-radius: 10px; font-size: 18px; color: #222;
+}
+#date-input:focus { outline: none; border-color: #00695c; }
+
+#table-card {
+  background: white; border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+#table-card h2 { font-size: 14px; color: #00695c; margin-bottom: 12px; font-weight: bold; }
+#souba-table { width: 100%; border-collapse: collapse; }
+#souba-table th {
+  background: #e0f2f1; color: #00695c; font-size: 11px;
+  padding: 8px 6px; text-align: right; border-bottom: 2px solid #b2dfdb;
+}
+#souba-table th:first-child { text-align: left; }
+#souba-table td {
+  padding: 10px 6px; font-size: 15px; text-align: right;
+  border-bottom: 1px solid #f0f0f0;
+}
+#souba-table td:first-child { text-align: left; font-weight: bold; font-size: 14px; }
+#souba-table td.shikiri-price { font-size: 18px; font-weight: bold; color: #00695c; }
+
+#filename-section {
+  background: white; border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: none;
+}
+#filename-section label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; }
+#filename-display {
+  font-size: 14px; color: #333; padding: 10px;
+  background: #f5f5f5; border-radius: 8px; margin-bottom: 8px;
+  word-break: break-all;
+}
+#btn-copy-filename {
+  background: #00695c; color: white; border: none; border-radius: 8px;
+  padding: 10px 20px; font-size: 14px; cursor: pointer; width: 100%;
+}
+#copy-msg { font-size: 12px; color: #43a047; text-align: center; margin-top: 6px; display: none; }
+
+#settings-panel {
+  background: white; border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: none;
+}
+#settings-panel h2 { font-size: 14px; color: #555; margin-bottom: 12px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-grade { font-size: 14px; font-weight: bold; }
+.settings-input {
+  width: 80px; padding: 6px 10px; border: 2px solid #b2dfdb;
+  border-radius: 8px; font-size: 15px; text-align: right;
+}
+#btn-save-settings {
+  background: #00695c; color: white; border: none; border-radius: 10px;
+  padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer;
+  width: 100%; margin-top: 14px;
+}
+
+#pdf-modal {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 200; overflow-y: auto; padding: 20px 10px;
+}
+#pdf-modal.open { display: block; }
+#pdf-content {
+  background: white; max-width: 600px; margin: 0 auto;
+  padding: 30px 24px; border-radius: 4px;
+  font-family: 'MS PGothic','Meiryo UI',sans-serif;
+}
+#btn-close-modal {
+  position: fixed; top: 10px; right: 10px;
+  background: white; border: none; border-radius: 50%;
+  width: 40px; height: 40px; font-size: 20px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 201;
+}
+
+.pdf-top-date { text-align: right; font-size: 13px; margin-bottom: 16px; }
+.pdf-recipient { font-size: 20px; font-weight: bold; margin-bottom: 4px; }
+.pdf-divider { border: none; border-top: 1px solid #333; margin: 12px 0; }
+.pdf-subtitle { font-size: 13px; text-align: center; margin-bottom: 12px; color: #444; }
+.pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+.pdf-table th { background: #e8f5e9; padding: 6px 8px; text-align: center; border: 1px solid #aaa; font-size: 12px; }
+.pdf-table td { padding: 7px 8px; border: 1px solid #bbb; text-align: right; }
+.pdf-table td:first-child { text-align: left; font-weight: bold; }
+.pdf-table td.pdf-shikiri { font-weight: bold; font-size: 14px; color: #1b5e20; }
+.pdf-signature { text-align: right; font-size: 13px; margin-bottom: 20px; }
+.pdf-notes { font-size: 11px; color: #555; line-height: 1.8; }
+
+.msg-box {
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+  font-size: 14px; display: none;
+}
+.msg-box.success { background: #e8f5e9; color: #2e7d32; display: block; }
+.msg-box.error { background: #ffebee; color: #c62828; display: block; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-title">太協物産 → 女川魚市場</div>
+  <div id="header-main">仕切り価格連絡票</div>
+  <div id="header-btns">
+    <button class="hbtn hbtn-reload" onclick="loadData()">🔄 再読込</button>
+    <button class="hbtn hbtn-preview" onclick="showPreview()">👁 確認</button>
+    <button class="hbtn hbtn-pdf" onclick="savePDF()">📄 PDF</button>
+    <button class="hbtn hbtn-mail" onclick="sendMail()">✉ 送信</button>
+    <button class="hbtn hbtn-settings" onclick="toggleSettings()">⚙</button>
+  </div>
+</div>
+
+<div id="content">
+  <div id="status-bar">
+    <div id="status-dot" class="loading"></div>
+    <div id="status-text">データを読み込んでいます...</div>
+  </div>
+
+  <div id="msg-box" class="msg-box"></div>
+
+  <div id="date-section">
+    <label>水揚げ日付</label>
+    <input type="date" id="date-input" onchange="loadData()">
+  </div>
+
+  <div id="settings-panel">
+    <h2>⚙ 規格別 加算額設定（円/kg）</h2>
+    <div id="settings-rows"></div>
+    <button id="btn-save-settings" onclick="saveSettings()">保存する</button>
+  </div>
+
+  <div id="table-card">
+    <h2>石巻魚市場 ギンザケ 規格別相場</h2>
+    <table id="souba-table">
+      <thead>
+        <tr>
+          <th>規格</th>
+          <th>石巻単価</th>
+          <th>加算額</th>
+          <th>仕切単価</th>
+        </tr>
+      </thead>
+      <tbody id="souba-tbody">
+        <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="filename-section">
+    <label>📎 PDFファイル名（コピーして使用）</label>
+    <div id="filename-display"></div>
+    <button id="btn-copy-filename" onclick="copyFilename()">📋 ファイル名をコピー</button>
+    <div id="copy-msg">✅ コピーしました！印刷ダイアログのファイル名欄に貼り付けてください</div>
+  </div>
+</div>
+
+<div id="pdf-modal">
+  <button id="btn-close-modal" onclick="closePdfModal()">✕</button>
+  <div id="pdf-content"></div>
+</div>
+
+<script>
+const SHEET_ID   = '1tLvvP73GxPnJfdfX4_lctB1xOj_Hc7LroOSbaiTScC8';
+const API_KEY    = 'AIzaSyDqpcvm9SXL069-FMKxZ9kHaYL_Cl8OWpQ';
+const SHEET_NAME = 'データ';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
+const MAIL_TO    = 'naomi@onagawauoichiba.com';
+
+const GRADE_ORDER = ['3.5k上','3k上','2.5k上','2k上','1.5k上','1k上','0.5k上','スレ','次品'];
+const DEFAULT_BONUS = {'3.5k上':10,'3k上':10,'2.5k上':10,'2k上':10,'1.5k上':10,'1k上':0,'0.5k上':10,'スレ':10,'次品':10};
+
+let currentData = [];
+let currentDateStr = '';
+let bonusSettings = {};
+let settingsOpen = false;
+
+window.addEventListener('load', () => {
+  loadBonusSettings();
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const d = String(today.getDate()).padStart(2,'0');
+  document.getElementById('date-input').value = y+'-'+m+'-'+d;
+  loadData();
+  renderSettingsPanel();
+});
+
+function loadBonusSettings() {
+  try {
+    const saved = localStorage.getItem('onagawa_bonus');
+    bonusSettings = saved ? JSON.parse(saved) : Object.assign({}, DEFAULT_BONUS);
+  } catch(e) {
+    bonusSettings = Object.assign({}, DEFAULT_BONUS);
+  }
+}
+
+function saveSettings() {
+  GRADE_ORDER.forEach(grade => {
+    const el = document.getElementById('setting_'+grade);
+    if (el) bonusSettings[grade] = parseInt(el.value) || 0;
+  });
+  localStorage.setItem('onagawa_bonus', JSON.stringify(bonusSettings));
+  renderTable();
+  showMsg('加算額設定を保存しました', 'success');
+  setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 2000);
+}
+
+function renderSettingsPanel() {
+  document.getElementById('settings-rows').innerHTML = GRADE_ORDER.map(grade => `
+    <div class="settings-row">
+      <span class="settings-grade">${grade}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;color:#888;">+</span>
+        <input class="settings-input" type="number" id="setting_${grade}"
+          value="${bonusSettings[grade]!==undefined?bonusSettings[grade]:10}" min="0" max="999">
+        <span style="font-size:13px;color:#888;">円/kg</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSettings() {
+  settingsOpen = !settingsOpen;
+  document.getElementById('settings-panel').style.display = settingsOpen ? 'block' : 'none';
+  if (settingsOpen) renderSettingsPanel();
+}
+
+function loadData() {
+  setStatus('loading', 'データを読み込んでいます...');
+  currentData = [];
+  renderTableLoading();
+
+  const dateVal = document.getElementById('date-input').value;
+  if (!dateVal) { setStatus('error', '日付を選択してください'); return; }
+
+  const parts = dateVal.split('-');
+  const y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+  currentDateStr = y+'/'+m+'/'+d;
+
+  const url = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(SHEET_NAME)+'?key='+API_KEY;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(json => {
+      const rows = json.values || [];
+      const data = [];
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row[0]) continue;
+        const rowDate = parseDate(row[0]);
+        if (!rowDate) continue;
+        if (rowDate.getFullYear()===y && rowDate.getMonth()+1===m && rowDate.getDate()===d) {
+          const grade = row[2] || '';
+          if (grade === '合計') continue;
+          if (!GRADE_ORDER.includes(grade)) continue;
+          const price = parseFloat(row[5]) || 0;
+          const bonus = bonusSettings[grade] !== undefined ? bonusSettings[grade] : 10;
+          data.push({ grade, ishinoPrice: price, bonus, shikiriPrice: price + bonus });
+        }
+      }
+      data.sort((a,b) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade));
+      currentData = data;
+
+      if (data.length === 0) {
+        setStatus('error', currentDateStr+' のデータが見つかりません');
+        renderTableEmpty();
+      } else {
+        setStatus('ok', currentDateStr+' のデータ（'+data.length+'規格）');
+        renderTable();
+      }
+    })
+    .catch(() => {
+      setStatus('error', 'データの読み込みに失敗しました');
+      renderTableEmpty();
+    });
+}
+
+function parseDate(val) {
+  if (!val) return null;
+  const s = String(val).trim();
+  const mt = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (mt) return new Date(parseInt(mt[1]), parseInt(mt[2])-1, parseInt(mt[3]));
+  const dt = new Date(s);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
+function renderTable() {
+  if (currentData.length === 0) { renderTableEmpty(); return; }
+  document.getElementById('souba-tbody').innerHTML = currentData.map(r => `
+    <tr>
+      <td>${r.grade}</td>
+      <td>${r.ishinoPrice.toLocaleString()}</td>
+      <td style="color:#888;">+${r.bonus}</td>
+      <td class="shikiri-price">${r.shikiriPrice.toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function renderTableLoading() {
+  document.getElementById('souba-tbody').innerHTML =
+    '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">読み込み中...</td></tr>';
+}
+
+function renderTableEmpty() {
+  document.getElementById('souba-tbody').innerHTML =
+    '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">データがありません</td></tr>';
+}
+
+function setStatus(type, msg) {
+  document.getElementById('status-dot').className = type;
+  document.getElementById('status-text').textContent = msg;
+}
+
+function showMsg(msg, type) {
+  const el = document.getElementById('msg-box');
+  el.textContent = msg;
+  el.className = 'msg-box '+type;
+}
+
+function getFilename() {
+  if (!currentDateStr) return '';
+  const p = currentDateStr.split('/');
+  const y = p[0], m = String(p[1]).padStart(2,'0'), d = String(p[2]).padStart(2,'0');
+  return y+'-'+m+'-'+d+'_カネ木_マルキン向け仕切価格';
+}
+
+function buildPdfHtml() {
+  const tableRows = currentData.map(r => `
+    <tr>
+      <td>${r.grade}</td>
+      <td>${r.ishinoPrice.toLocaleString()}</td>
+      <td>+${r.bonus}</td>
+      <td class="pdf-shikiri">${r.shikiriPrice.toLocaleString()}</td>
+    </tr>
+  `).join('');
+  return `
+    <div class="pdf-top-date">${currentDateStr} 水揚げ分</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;">
+      <div class="pdf-recipient">（株）女川魚市場　御中</div>
+      <div style="text-align:right;font-size:13px;">太協物産株式会社</div>
+    </div>
+    <hr class="pdf-divider">
+    <div class="pdf-subtitle">石巻魚市場 ／ 規格別加重平均単価</div>
+    <table class="pdf-table">
+      <thead><tr>
+        <th>規格</th><th>石巻単価<br><small>(円/kg)</small></th>
+        <th>加算額<br><small>(円/kg)</small></th><th>仕切単価<br><small>(円/kg)</small></th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <div class="pdf-signature">久保田</div>
+    <div class="pdf-notes">
+      ※ 上記単価は石巻魚市場における加重平均単価をもとに算出しております。<br>
+      ※ 数量・金額の詳細については別途ご確認ください。
+    </div>
+  `;
+}
+
+function showPreview() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  document.getElementById('pdf-content').innerHTML = buildPdfHtml();
+  document.getElementById('pdf-modal').classList.add('open');
+}
+
+function closePdfModal() {
+  document.getElementById('pdf-modal').classList.remove('open');
+}
+
+function savePDF() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  const filename = getFilename();
+  const sec = document.getElementById('filename-section');
+  sec.style.display = 'block';
+  document.getElementById('filename-display').textContent = filename;
+  document.getElementById('copy-msg').style.display = 'none';
+
+  const tableRows = currentData.map(r =>
+    '<tr><td>'+r.grade+'</td><td>'+r.ishinoPrice.toLocaleString()+'</td><td>+'+r.bonus+'</td><td class="shikiri">'+r.shikiriPrice.toLocaleString()+'</td></tr>'
+  ).join('');
+
+  const win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>'+filename+'</title><style>'
+    +'body{font-family:"MS PGothic","Meiryo UI",sans-serif;padding:20px 24px;font-size:13px;}'
+    +'.top-date{text-align:right;font-size:13px;margin-bottom:16px;}'
+    +'.recipient{font-size:20px;font-weight:bold;}'
+    +'hr{border:none;border-top:1px solid #333;margin:12px 0;}'
+    +'.subtitle{font-size:13px;text-align:center;margin-bottom:12px;color:#444;}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:16px;}'
+    +'th{background:#e8f5e9;padding:6px 8px;text-align:center;border:1px solid #aaa;font-size:12px;}'
+    +'td{padding:7px 8px;border:1px solid #bbb;text-align:right;}'
+    +'td:first-child{text-align:left;font-weight:bold;}'
+    +'.shikiri{font-weight:bold;font-size:14px;}'
+    +'.sig{text-align:right;margin-bottom:20px;}'
+    +'.notes{font-size:11px;color:#555;line-height:1.8;}'
+    +'@media print{body{padding:10mm;}}'
+    +'</style></head><body>'
+    +'<div class="top-date">'+currentDateStr+' 水揚げ分</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;">'
+    +'<div class="recipient">（株）女川魚市場　御中</div>'
+    +'<div style="text-align:right;font-size:13px;">太協物産株式会社</div></div>'
+    +'<hr>'
+    +'<div class="subtitle">石巻魚市場 ／ 規格別加重平均単価</div>'
+    +'<table><thead><tr><th>規格</th><th>石巻単価(円/kg)</th><th>加算額(円/kg)</th><th>仕切単価(円/kg)</th></tr></thead>'
+    +'<tbody>'+tableRows+'</tbody></table>'
+    +'<div class="sig">久保田</div>'
+    +'<div class="notes">※ 上記単価は石巻魚市場における加重平均単価をもとに算出しております。<br>※ 数量・金額の詳細については別途ご確認ください。</div>'
+    +'</body></html>');
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
+function copyFilename() {
+  const filename = getFilename();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(filename).then(showCopyMsg);
+  } else {
+    const el = document.createElement('textarea');
+    el.value = filename;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showCopyMsg();
+  }
+}
+
+function showCopyMsg() {
+  document.getElementById('copy-msg').style.display = 'block';
+}
+
+function sendMail() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  const filename = getFilename();
+  const subject = encodeURIComponent(filename);
+  const bodyLines = [
+    '（株）女川魚市場　山内直美 様','',
+    'お世話になっております。','太協物産 久保田です。','',
+    currentDateStr+' 水揚げ分の仕切り価格をお送りします。','',
+    '■ 規格別仕切単価',
+    ...currentData.map(r => r.grade+'：'+r.shikiriPrice.toLocaleString()+' 円/kg'),
+    '','※ PDFを別途添付いたします。','',
+    'どうぞよろしくお願いいたします。','太協物産株式会社　久保田'
+  ];
+  window.location.href = 'mailto:'+MAIL_TO+'?subject='+subject+'&body='+encodeURIComponent(bodyLines.join('\n'));
+  saveSendHistoryToGAS();
+}
+
+function saveSendHistoryToGAS() {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEB_APP_URL') return;
+  const now = new Date();
+  const sentAt = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '
+    +String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      action: 'saveSendHistory',
+      data: {
+        sentAt,
+        wateringDate: currentDateStr,
+        rows: currentData.map(r => ({
+          grade: r.grade, ishinoPrice: r.ishinoPrice,
+          bonus: r.bonus, shikiriPrice: r.shikiriPrice
+        }))
+      }
+    })
+  }).catch(err => console.error('履歴保存エラー:', err));
+}
+</script>
+</body>
+</html>
