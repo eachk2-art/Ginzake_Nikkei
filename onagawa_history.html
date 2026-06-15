@@ -46,12 +46,16 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; co
 }
 .date-header {
   background: #4a148c; color: white;
-  padding: 14px 16px;
+  padding: 14px 16px; cursor: pointer;
   display: flex; justify-content: space-between; align-items: center;
 }
-.date-header-left { }
+.date-header-left { flex: 1; }
 .date-header-date { font-size: 18px; font-weight: bold; }
 .date-header-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.date-header-arrow { font-size: 18px; transition: transform 0.3s; margin: 0 10px; }
+.date-header-arrow.open { transform: rotate(180deg); }
+.date-body { display: none; }
+.date-body.open { display: block; }
 .btn-delete {
   background: #e53935; color: white; border: none; border-radius: 8px;
   padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer;
@@ -182,24 +186,34 @@ function renderHistory(data) {
     const block = document.createElement('div');
     block.className = 'date-block';
     block.innerHTML = `
-      <div class="date-header">
+      <div class="date-header" onclick="toggleBlock(this)">
         <div class="date-header-left">
           <div class="date-header-date">${entry.wateringDate} 水揚げ分</div>
           <div class="date-header-sub">送信：${entry.sentAt}</div>
         </div>
-        <button class="btn-delete" onclick="askDelete('${entry.wateringDate}')">取り消し</button>
+        <span class="date-header-arrow">▼</span>
+        <button class="btn-delete" onclick="event.stopPropagation();askDelete('${entry.wateringDate}')">取り消し</button>
       </div>
-      <table class="price-table">
-        <thead>
-          <tr>
-            <th>規格</th><th>石巻単価</th><th>加算額</th><th>仕切単価</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="date-body">
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>規格</th><th>石巻単価</th><th>加算額</th><th>仕切単価</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     `;
     area.appendChild(block);
   });
+}
+
+function toggleBlock(header) {
+  const arrow = header.querySelector('.date-header-arrow');
+  const body = header.nextElementSibling;
+  arrow.classList.toggle('open');
+  body.classList.toggle('open');
 }
 
 function askDelete(wateringDate) {
