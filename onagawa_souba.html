@@ -510,7 +510,7 @@ function showCopyMsg() {
 
 function registerOnly() {
   if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
-  saveSendHistoryToGAS();
+  saveSendHistoryToGAS(null);
   showMsg(currentDateStr + ' の履歴を登録しました', 'success');
   setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 3000);
 }
@@ -529,10 +529,10 @@ function sendMail() {
     'どうぞよろしくお願いいたします。','太協物産株式会社　久保田'
   ];
   window.location.href = 'mailto:'+MAIL_TO+'?subject='+subject+'&body='+encodeURIComponent(bodyLines.join('\n'));
-  saveSendHistoryToGAS();
+  saveSendHistoryToGAS(null);
 }
 
-function saveSendHistoryToGAS() {
+function saveSendHistoryToGAS(onDuplicate) {
   if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEB_APP_URL') return;
   const now = new Date();
   const sentAt = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '
@@ -547,7 +547,14 @@ function saveSendHistoryToGAS() {
     wateringDate: currentDateStr,
     rows: rows
   });
-  fetch(GAS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+  fetch(GAS_URL + '?' + params.toString())
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'duplicate') {
+        showMsg(currentDateStr + ' はすでに登録済みです', 'error');
+        if (onDuplicate) onDuplicate();
+      }
+    })
     .catch(err => console.error('履歴保存エラー:', err));
 }
 </script>
