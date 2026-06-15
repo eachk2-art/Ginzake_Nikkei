@@ -136,7 +136,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; co
 </div>
 
 <script>
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
 let deleteTarget = null;
 let historyData = [];
 
@@ -217,23 +217,19 @@ function confirmDelete() {
   closeConfirm();
   setStatus('loading', '削除中...');
 
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ action: 'deleteSendHistory', wateringDate: date })
-  })
-  .then(r => r.json())
-  .then(res => {
-    if (res.status === 'ok') {
-      setStatus('ok', date + ' の履歴を削除しました');
-      loadHistory();
-    } else {
-      setStatus('error', '削除に失敗しました：' + res.message);
-    }
-  })
-  .catch(() => {
-    setStatus('error', '削除に失敗しました');
+  const params = new URLSearchParams({
+    action: 'deleteSendHistory',
+    wateringDate: date
   });
+
+  fetch(GAS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+    .then(() => {
+      setStatus('ok', date + ' の履歴を削除しました');
+      setTimeout(() => loadHistory(), 1000);
+    })
+    .catch(() => {
+      setStatus('error', '削除に失敗しました');
+    });
 }
 
 function setStatus(type, msg) {

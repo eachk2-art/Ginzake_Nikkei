@@ -522,21 +522,18 @@ function saveSendHistoryToGAS() {
   const now = new Date();
   const sentAt = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '
     +String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      action: 'saveSendHistory',
-      data: {
-        sentAt,
-        wateringDate: currentDateStr,
-        rows: currentData.map(r => ({
-          grade: r.grade, ishinoPrice: r.ishinoPrice,
-          bonus: r.bonus, shikiriPrice: r.shikiriPrice
-        }))
-      }
-    })
-  }).catch(err => console.error('履歴保存エラー:', err));
+  const rows = JSON.stringify(currentData.map(r => ({
+    grade: r.grade, ishinoPrice: r.ishinoPrice,
+    bonus: r.bonus, shikiriPrice: r.shikiriPrice
+  })));
+  const params = new URLSearchParams({
+    action: 'saveSendHistory',
+    sentAt: sentAt,
+    wateringDate: currentDateStr,
+    rows: rows
+  });
+  fetch(GAS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+    .catch(err => console.error('履歴保存エラー:', err));
 }
 </script>
 </body>
