@@ -166,7 +166,8 @@ function loadHistory() {
 function renderHistory(data) {
   const area = document.getElementById('data-area');
   area.innerHTML = '';
-  document.getElementById('no-data').style.display = 'none';
+  const noData = document.getElementById('no-data');
+  if (noData) noData.style.display = 'none';
 
   data.forEach(entry => {
     const rows = entry.rows.map(r => `
