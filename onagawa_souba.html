@@ -234,23 +234,27 @@ let bonusSettings = {};
 let settingsOpen = false;
 
 window.addEventListener('load', () => {
-  loadBonusSettings();
   const today = new Date();
   const y = today.getFullYear();
   const m = String(today.getMonth()+1).padStart(2,'0');
   const d = String(today.getDate()).padStart(2,'0');
   document.getElementById('date-input').value = y+'-'+m+'-'+d;
-  loadData();
-  renderSettingsPanel();
+  loadBonusSettings(); // 設定読み込み後にloadDataとrenderSettingsPanelを呼ぶ
 });
 
 function loadBonusSettings() {
-  try {
-    const saved = localStorage.getItem('onagawa_bonus');
-    bonusSettings = saved ? JSON.parse(saved) : Object.assign({}, DEFAULT_BONUS);
-  } catch(e) {
-    bonusSettings = Object.assign({}, DEFAULT_BONUS);
-  }
+  fetch(GAS_URL + '?action=getBonusSettings')
+    .then(r => r.json())
+    .then(data => {
+      bonusSettings = data;
+      renderSettingsPanel();
+      loadData();
+    })
+    .catch(() => {
+      bonusSettings = Object.assign({}, DEFAULT_BONUS);
+      renderSettingsPanel();
+      loadData();
+    });
 }
 
 function saveSettings() {
@@ -258,10 +262,21 @@ function saveSettings() {
     const el = document.getElementById('setting_'+grade);
     if (el) bonusSettings[grade] = parseInt(el.value) || 0;
   });
-  localStorage.setItem('onagawa_bonus', JSON.stringify(bonusSettings));
-  renderTable();
-  showMsg('加算額設定を保存しました', 'success');
-  setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 2000);
+
+  const params = new URLSearchParams({
+    action: 'saveBonusSettings',
+    settings: JSON.stringify(bonusSettings)
+  });
+
+  fetch(GAS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+    .then(() => {
+      renderTable();
+      showMsg('加算額設定を保存しました', 'success');
+      setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 2000);
+    })
+    .catch(() => {
+      showMsg('設定の保存に失敗しました', 'error');
+    });
 }
 
 function renderSettingsPanel() {
