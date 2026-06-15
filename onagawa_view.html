@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>女川魚市場 仕切価格一覧</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #222; font-size: 16px; }
+
+#header {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #1565c0; color: white; z-index: 100;
+  padding: 12px 16px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+#header-title { font-size: 11px; opacity: 0.8; margin-bottom: 2px; }
+#header-main { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+#header-nav { display: flex; gap: 6px; }
+.nbtn {
+  flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
+  font-size: 13px; font-weight: bold; cursor: pointer; min-height: 46px;
+  text-decoration: none; display: flex; align-items: center; justify-content: center;
+}
+.nbtn-active { background: white; color: #1565c0; }
+.nbtn-inactive { background: rgba(255,255,255,0.2); color: white; }
+
+#content { padding: 14px; margin-top: 110px; }
+
+#status-bar {
+  background: white; border-radius: 12px; padding: 12px 16px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+#status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+#status-dot.ok { background: #43a047; }
+#status-dot.loading { background: #fb8c00; animation: pulse 1s infinite; }
+#status-dot.error { background: #e53935; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+#status-text { font-size: 14px; color: #555; flex: 1; }
+
+.date-block {
+  background: white; border-radius: 12px; margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1); overflow: hidden;
+}
+.date-header {
+  background: #1565c0; color: white;
+  padding: 14px 16px;
+  font-size: 18px; font-weight: bold;
+}
+.date-header-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.price-table { width: 100%; border-collapse: collapse; }
+.price-table th {
+  background: #e3f2fd; color: #1565c0; font-size: 12px;
+  padding: 8px 12px; text-align: right; border-bottom: 2px solid #bbdefb;
+}
+.price-table th:first-child { text-align: left; }
+.price-table td {
+  padding: 12px 12px; text-align: right;
+  border-bottom: 1px solid #f0f0f0; font-size: 15px;
+}
+.price-table td:first-child { text-align: left; font-weight: bold; font-size: 14px; }
+.price-table td.shikiri { font-size: 22px; font-weight: bold; color: #1565c0; }
+.price-table tr:last-child td { border-bottom: none; }
+
+#no-data {
+  text-align: center; padding: 60px 20px; color: #aaa; font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-title">女川魚市場 ／ ギンザケ</div>
+  <div id="header-main">仕切価格一覧</div>
+  <div id="header-nav">
+    <a class="nbtn nbtn-inactive" href="onagawa_souba.html">✏️ 作成</a>
+    <a class="nbtn nbtn-active" href="onagawa_view.html">📋 閲覧</a>
+    <a class="nbtn nbtn-inactive" href="onagawa_history.html">🕐 履歴</a>
+  </div>
+</div>
+
+<div id="content">
+  <div id="status-bar">
+    <div id="status-dot" class="loading"></div>
+    <div id="status-text">データを読み込んでいます...</div>
+  </div>
+  <div id="data-area">
+    <div id="no-data" style="display:none;">送信履歴がまだありません</div>
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
+
+window.addEventListener('load', loadHistory);
+
+function loadHistory() {
+  setStatus('loading', 'データを読み込んでいます...');
+
+  fetch(GAS_URL + '?action=getSendHistory')
+    .then(r => r.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        setStatus('ok', 'データを読み込みました');
+        document.getElementById('no-data').style.display = 'block';
+        return;
+      }
+      setStatus('ok', data.length + '件の送信履歴');
+      renderHistory(data);
+    })
+    .catch(() => {
+      setStatus('error', 'データの読み込みに失敗しました');
+    });
+}
+
+function renderHistory(data) {
+  const area = document.getElementById('data-area');
+  area.innerHTML = '';
+
+  data.forEach(entry => {
+    const rows = entry.rows.map(r => `
+      <tr>
+        <td>${r.grade}</td>
+        <td>${r.ishinoPrice.toLocaleString()}</td>
+        <td style="color:#888;">+${r.bonus}</td>
+        <td class="shikiri">${r.shikiriPrice.toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    const block = document.createElement('div');
+    block.className = 'date-block';
+    block.innerHTML = `
+      <div class="date-header">
+        ${entry.wateringDate} 水揚げ分
+        <div class="date-header-sub">送信日時：${entry.sentAt}</div>
+      </div>
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>規格</th>
+            <th>石巻単価</th>
+            <th>加算額</th>
+            <th>仕切単価</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    area.appendChild(block);
+  });
+}
+
+function setStatus(type, msg) {
+  document.getElementById('status-dot').className = type;
+  document.getElementById('status-text').textContent = msg;
+}
+</script>
+</body>
+</html>

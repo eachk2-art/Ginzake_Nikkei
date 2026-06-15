@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>送信履歴</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; color: #222; font-size: 16px; }
+
+#header {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #4a148c; color: white; z-index: 100;
+  padding: 12px 16px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+#header-title { font-size: 11px; opacity: 0.8; margin-bottom: 2px; }
+#header-main { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+#header-nav { display: flex; gap: 6px; }
+.nbtn {
+  flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
+  font-size: 13px; font-weight: bold; cursor: pointer; min-height: 46px;
+  text-decoration: none; display: flex; align-items: center; justify-content: center;
+}
+.nbtn-active { background: white; color: #4a148c; }
+.nbtn-inactive { background: rgba(255,255,255,0.2); color: white; }
+
+#content { padding: 14px; margin-top: 110px; }
+
+#status-bar {
+  background: white; border-radius: 12px; padding: 12px 16px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+#status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+#status-dot.ok { background: #43a047; }
+#status-dot.loading { background: #fb8c00; animation: pulse 1s infinite; }
+#status-dot.error { background: #e53935; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+#status-text { font-size: 14px; color: #555; flex: 1; }
+
+.date-block {
+  background: white; border-radius: 12px; margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1); overflow: hidden;
+}
+.date-header {
+  background: #4a148c; color: white;
+  padding: 14px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.date-header-left { }
+.date-header-date { font-size: 18px; font-weight: bold; }
+.date-header-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.btn-delete {
+  background: #e53935; color: white; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-delete:active { background: #b71c1c; }
+
+.price-table { width: 100%; border-collapse: collapse; }
+.price-table th {
+  background: #f3e5f5; color: #4a148c; font-size: 12px;
+  padding: 8px 12px; text-align: right; border-bottom: 2px solid #e1bee7;
+}
+.price-table th:first-child { text-align: left; }
+.price-table td {
+  padding: 10px 12px; text-align: right;
+  border-bottom: 1px solid #f0f0f0; font-size: 14px;
+}
+.price-table td:first-child { text-align: left; font-weight: bold; }
+.price-table td.shikiri { font-size: 18px; font-weight: bold; color: #4a148c; }
+.price-table tr:last-child td { border-bottom: none; }
+
+/* 削除確認ダイアログ */
+#confirm-modal {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 200;
+  align-items: center; justify-content: center; padding: 20px;
+}
+#confirm-modal.open { display: flex; }
+#confirm-box {
+  background: white; border-radius: 16px; padding: 24px;
+  max-width: 340px; width: 100%; text-align: center;
+}
+#confirm-box h3 { font-size: 18px; margin-bottom: 10px; color: #333; }
+#confirm-box p { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.6; }
+#confirm-date { font-size: 16px; font-weight: bold; color: #e53935; margin-bottom: 20px; }
+.confirm-btns { display: flex; gap: 10px; }
+#btn-confirm-yes {
+  flex: 1; background: #e53935; color: white; border: none;
+  border-radius: 10px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer;
+}
+#btn-confirm-no {
+  flex: 1; background: #eee; color: #333; border: none;
+  border-radius: 10px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer;
+}
+
+#no-data { text-align: center; padding: 60px 20px; color: #aaa; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-title">太協物産 ／ 管理</div>
+  <div id="header-main">送信履歴</div>
+  <div id="header-nav">
+    <a class="nbtn nbtn-inactive" href="onagawa_souba.html">✏️ 作成</a>
+    <a class="nbtn nbtn-inactive" href="onagawa_view.html">📋 閲覧</a>
+    <a class="nbtn nbtn-active" href="onagawa_history.html">🕐 履歴</a>
+  </div>
+</div>
+
+<div id="content">
+  <div id="status-bar">
+    <div id="status-dot" class="loading"></div>
+    <div id="status-text">データを読み込んでいます...</div>
+  </div>
+  <div id="data-area">
+    <div id="no-data" style="display:none;">送信履歴がまだありません</div>
+  </div>
+</div>
+
+<!-- 削除確認モーダル -->
+<div id="confirm-modal">
+  <div id="confirm-box">
+    <h3>送信履歴を取り消す</h3>
+    <div id="confirm-date"></div>
+    <p>この日付の送信履歴をスプレッドシートから削除します。よろしいですか？</p>
+    <div class="confirm-btns">
+      <button id="btn-confirm-yes" onclick="confirmDelete()">削除する</button>
+      <button id="btn-confirm-no" onclick="closeConfirm()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
+let deleteTarget = null;
+let historyData = [];
+
+window.addEventListener('load', loadHistory);
+
+function loadHistory() {
+  setStatus('loading', 'データを読み込んでいます...');
+
+  fetch(GAS_URL + '?action=getSendHistory')
+    .then(r => r.json())
+    .then(data => {
+      historyData = data || [];
+      if (historyData.length === 0) {
+        setStatus('ok', '送信履歴はありません');
+        document.getElementById('no-data').style.display = 'block';
+        return;
+      }
+      setStatus('ok', historyData.length + '件の送信履歴');
+      renderHistory(historyData);
+    })
+    .catch(() => {
+      setStatus('error', 'データの読み込みに失敗しました');
+    });
+}
+
+function renderHistory(data) {
+  const area = document.getElementById('data-area');
+  area.innerHTML = '';
+  document.getElementById('no-data').style.display = 'none';
+
+  data.forEach(entry => {
+    const rows = entry.rows.map(r => `
+      <tr>
+        <td>${r.grade}</td>
+        <td>${r.ishinoPrice.toLocaleString()}</td>
+        <td style="color:#888;">+${r.bonus}</td>
+        <td class="shikiri">${r.shikiriPrice.toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    const block = document.createElement('div');
+    block.className = 'date-block';
+    block.innerHTML = `
+      <div class="date-header">
+        <div class="date-header-left">
+          <div class="date-header-date">${entry.wateringDate} 水揚げ分</div>
+          <div class="date-header-sub">送信：${entry.sentAt}</div>
+        </div>
+        <button class="btn-delete" onclick="askDelete('${entry.wateringDate}')">取り消し</button>
+      </div>
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>規格</th><th>石巻単価</th><th>加算額</th><th>仕切単価</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    area.appendChild(block);
+  });
+}
+
+function askDelete(wateringDate) {
+  deleteTarget = wateringDate;
+  document.getElementById('confirm-date').textContent = wateringDate + ' 水揚げ分';
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeConfirm() {
+  deleteTarget = null;
+  document.getElementById('confirm-modal').classList.remove('open');
+}
+
+function confirmDelete() {
+  if (!deleteTarget) return;
+  const date = deleteTarget;
+  closeConfirm();
+  setStatus('loading', '削除中...');
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ action: 'deleteSendHistory', wateringDate: date })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.status === 'ok') {
+      setStatus('ok', date + ' の履歴を削除しました');
+      loadHistory();
+    } else {
+      setStatus('error', '削除に失敗しました：' + res.message);
+    }
+  })
+  .catch(() => {
+    setStatus('error', '削除に失敗しました');
+  });
+}
+
+function setStatus(type, msg) {
+  document.getElementById('status-dot').className = type;
+  document.getElementById('status-text').textContent = msg;
+}
+</script>
+</body>
+</html>
