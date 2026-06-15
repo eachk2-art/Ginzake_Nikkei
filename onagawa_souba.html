@@ -165,6 +165,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; co
     <a style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:center;text-decoration:none;background:white;color:#00695c;" href="onagawa_souba.html">✏️ 作成</a>
     <a style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:center;text-decoration:none;background:rgba(255,255,255,0.2);color:white;" href="onagawa_view.html?admin=1">📋 閲覧</a>
     <a style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:center;text-decoration:none;background:rgba(255,255,255,0.2);color:white;" href="onagawa_history.html">🕐 履歴</a>
+    <button style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:center;background:rgba(255,255,255,0.15);color:white;" onclick="registerOnly()">📝 登録</button>
   </div>
 </div>
 
@@ -490,6 +491,13 @@ function copyFilename() {
 
 function showCopyMsg() {
   document.getElementById('copy-msg').style.display = 'block';
+}
+
+function registerOnly() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  saveSendHistoryToGAS();
+  showMsg(currentDateStr + ' の履歴を登録しました', 'success');
+  setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 3000);
 }
 
 function sendMail() {
