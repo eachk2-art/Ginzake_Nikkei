@@ -74,9 +74,9 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; co
 <div id="header">
   <div id="header-title">女川魚市場 ／ ギンザケ</div>
   <div id="header-main">仕切価格一覧</div>
-  <div id="header-nav">
+  <div id="header-nav" style="display:none;">
     <a class="nbtn nbtn-inactive" href="onagawa_souba.html">✏️ 作成</a>
-    <a class="nbtn nbtn-active" href="onagawa_view.html">📋 閲覧</a>
+    <a class="nbtn nbtn-active" href="onagawa_view.html?admin=1">📋 閲覧</a>
     <a class="nbtn nbtn-inactive" href="onagawa_history.html">🕐 履歴</a>
   </div>
 </div>
@@ -94,7 +94,15 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f4f8; co
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
 
-window.addEventListener('load', loadHistory);
+window.addEventListener('load', () => {
+  // ?admin=1 がついている時だけナビを表示
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('admin') === '1') {
+    document.getElementById('header-nav').style.display = 'flex';
+    document.getElementById('content').style.marginTop = '145px';
+  }
+  loadHistory();
+});
 
 function loadHistory() {
   setStatus('loading', 'データを読み込んでいます...');
