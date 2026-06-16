@@ -250,8 +250,8 @@ const SHEET_NAME = 'データ';
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwHNxWruJmGnCIlb0XP5pU52N-McPvFg4ExOOfxlDkGXNl7xcIktgr2YmhMFSVcAdwj7w/exec';
 const MAIL_TO    = 'naomi@onagawauoichiba.com';
 
-const GRADE_ORDER = ['3.5k上','3k上','2.5k上','2k上','1.5k上','1k上','0.5k上','スレ','次品'];
-const DEFAULT_BONUS = {'3.5k上':10,'3k上':10,'2.5k上':10,'2k上':10,'1.5k上':10,'1k上':0,'0.5k上':10,'スレ':10,'次品':10};
+const GRADE_ORDER = ['3.5k上','3k上','2.5k上','2k上','1.5k上','1k上','0.5k上'];
+const DEFAULT_BONUS = {'3.5k上':10,'3k上':10,'2.5k上':10,'2k上':10,'1.5k上':10,'1k上':0,'0.5k上':10};
 
 let currentData = [];
 let currentDateStr = '';
@@ -453,7 +453,7 @@ function buildPdfHtml() {
       ※ 上記単価は石巻魚市場における加重平均単価をもとに算出しております。<br>
       ※ 数量・金額の詳細については別途ご確認ください。
     </div>
-    <div class="pdf-notes-important">※ 1k上・0.5k上・スレ・次品については、石巻魚市場の単価を参考としつつ、女川魚市場での販売価格を仕切単価とします。</div>
+    <div class="pdf-notes-important">※ 1k上・0.5k上については、石巻魚市場の単価を参考としつつ、女川魚市場での販売価格を仕切単価とします。</div>
   `;
 }
 
@@ -508,7 +508,7 @@ function savePDF() {
     +'<div class="grower">ギンザケ養殖業者：阿部功（出島カネ木）</div>'
     +'<div class="sig">久保田</div>'
     +'<div class="notes">※ 上記単価は石巻魚市場における加重平均単価をもとに算出しております。<br>※ 数量・金額の詳細については別途ご確認ください。</div>'
-    +'<div class="notes-important">※ 1k上・0.5k上・スレ・次品については、石巻魚市場の単価を参考としつつ、<br>女川魚市場での販売価格を仕切単価とします。</div>'
+    +'<div class="notes-important">※ 1k上・0.5k上については、石巻魚市場の単価を参考としつつ、<br>女川魚市場での販売価格を仕切単価とします。</div>'
     +'</body></html>');
   win.document.close();
   setTimeout(() => win.print(), 500);
