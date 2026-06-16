@@ -486,6 +486,8 @@ function saveSendHistoryToGAS(onDuplicate, onSuccess) {
     })
     .catch(err => console.error('履歴保存エラー:', err));
 }
+
+function getFilename() {
   if (!currentDateStr) return '';
   const p = currentDateStr.split('/');
   const y = p[0], m = String(p[1]).padStart(2,'0'), d = String(p[2]).padStart(2,'0');
