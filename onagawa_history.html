@@ -155,7 +155,8 @@ function loadHistory() {
       historyData = data || [];
       if (historyData.length === 0) {
         setStatus('ok', '送信履歴はありません');
-        document.getElementById('no-data').style.display = 'block';
+        const area = document.getElementById('data-area');
+        area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;font-size:16px;">送信履歴がまだありません</div>';
         return;
       }
       setStatus('ok', historyData.length + '件の送信履歴');
