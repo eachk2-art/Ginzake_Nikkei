@@ -454,7 +454,7 @@ function sendMail() {
     '■ 規格別仕切単価',
     ...currentData.map(r => r.grade+'：'+r.shikiriPrice.toLocaleString()+' 円/kg'),
     '','※ PDFを別途添付いたします。','',
-    'どうぞよろしくお願いいたします。','太協物産株式会社　久保田'
+    'どうぞよろしくお願いいたします。'
   ];
   window.location.href = 'mailto:'+MAIL_TO+'?subject='+subject+'&body='+encodeURIComponent(bodyLines.join('\n'));
   saveSendHistoryToGAS(null, null);
