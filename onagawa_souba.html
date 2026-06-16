@@ -268,8 +268,13 @@ window.addEventListener('load', () => {
 });
 
 function loadBonusSettings() {
-  fetch(GAS_URL + '?action=getBonusSettings')
-    .then(r => r.json())
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), 5000)
+  );
+  Promise.race([
+    fetch(GAS_URL + '?action=getBonusSettings').then(r => r.json()),
+    timeout
+  ])
     .then(data => {
       bonusSettings = data;
       renderSettingsPanel();
@@ -293,11 +298,11 @@ function saveSettings() {
     settings: JSON.stringify(bonusSettings)
   });
 
-  fetch(GAS_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' })
+  fetch(GAS_URL + '?' + params.toString())
+    .then(r => r.json())
     .then(() => {
       renderTable();
       showMsg('加算額設定を保存しました', 'success');
-      setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 2000);
     })
     .catch(() => {
       showMsg('設定の保存に失敗しました', 'error');
