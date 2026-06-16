@@ -410,13 +410,77 @@ function setStatus(type, msg) {
   document.getElementById('status-text').textContent = msg;
 }
 
+let msgTimer = null;
+
 function showMsg(msg, type) {
   const el = document.getElementById('msg-box');
   el.textContent = msg;
   el.className = 'msg-box '+type;
+  if (msgTimer) clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => {
+    el.style.display = 'none';
+    msgTimer = null;
+  }, 3000);
 }
 
-function getFilename() {
+function showCopyMsg() {
+  document.getElementById('copy-msg').style.display = 'block';
+}
+
+function registerOnly() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  saveSendHistoryToGAS(function() {
+    // 重複時は何もしない（saveSendHistoryToGAS内でエラーメッセージ表示）
+  }, function() {
+    // 成功時
+    showMsg(currentDateStr + ' の履歴を登録しました', 'success');
+  });
+}
+
+function sendMail() {
+  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
+  const filename = getFilename();
+  const subject = encodeURIComponent(filename);
+  const bodyLines = [
+    '（株）女川魚市場　山内直美 様','',
+    'お世話になっております。','太協物産 久保田です。','',
+    currentDateStr+' 水揚げ分の仕切り価格をお送りします。','',
+    '■ 規格別仕切単価',
+    ...currentData.map(r => r.grade+'：'+r.shikiriPrice.toLocaleString()+' 円/kg'),
+    '','※ PDFを別途添付いたします。','',
+    'どうぞよろしくお願いいたします。','太協物産株式会社　久保田'
+  ];
+  window.location.href = 'mailto:'+MAIL_TO+'?subject='+subject+'&body='+encodeURIComponent(bodyLines.join('\n'));
+  saveSendHistoryToGAS(null, null);
+}
+
+function saveSendHistoryToGAS(onDuplicate, onSuccess) {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEB_APP_URL') return;
+  const now = new Date();
+  const sentAt = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '
+    +String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const rows = JSON.stringify(currentData.map(r => ({
+    grade: r.grade, ishinoPrice: r.ishinoPrice,
+    bonus: r.bonus, shikiriPrice: r.shikiriPrice
+  })));
+  const params = new URLSearchParams({
+    action: 'saveSendHistory',
+    sentAt: sentAt,
+    wateringDate: currentDateStr,
+    rows: rows
+  });
+  fetch(GAS_URL + '?' + params.toString())
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'duplicate') {
+        showMsg(currentDateStr + ' はすでに登録済みです', 'error');
+        if (onDuplicate) onDuplicate();
+      } else if (res.status === 'ok') {
+        if (onSuccess) onSuccess();
+      }
+    })
+    .catch(err => console.error('履歴保存エラー:', err));
+}
   if (!currentDateStr) return '';
   const p = currentDateStr.split('/');
   const y = p[0], m = String(p[1]).padStart(2,'0'), d = String(p[2]).padStart(2,'0');
@@ -527,60 +591,6 @@ function copyFilename() {
     document.body.removeChild(el);
     showCopyMsg();
   }
-}
-
-function showCopyMsg() {
-  document.getElementById('copy-msg').style.display = 'block';
-}
-
-function registerOnly() {
-  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
-  saveSendHistoryToGAS(null);
-  showMsg(currentDateStr + ' の履歴を登録しました', 'success');
-  setTimeout(() => { document.getElementById('msg-box').style.display='none'; }, 3000);
-}
-
-function sendMail() {
-  if (currentData.length === 0) { showMsg('先にデータを読み込んでください', 'error'); return; }
-  const filename = getFilename();
-  const subject = encodeURIComponent(filename);
-  const bodyLines = [
-    '（株）女川魚市場　山内直美 様','',
-    'お世話になっております。','太協物産 久保田です。','',
-    currentDateStr+' 水揚げ分の仕切り価格をお送りします。','',
-    '■ 規格別仕切単価',
-    ...currentData.map(r => r.grade+'：'+r.shikiriPrice.toLocaleString()+' 円/kg'),
-    '','※ PDFを別途添付いたします。','',
-    'どうぞよろしくお願いいたします。','太協物産株式会社　久保田'
-  ];
-  window.location.href = 'mailto:'+MAIL_TO+'?subject='+subject+'&body='+encodeURIComponent(bodyLines.join('\n'));
-  saveSendHistoryToGAS(null);
-}
-
-function saveSendHistoryToGAS(onDuplicate) {
-  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEB_APP_URL') return;
-  const now = new Date();
-  const sentAt = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '
-    +String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const rows = JSON.stringify(currentData.map(r => ({
-    grade: r.grade, ishinoPrice: r.ishinoPrice,
-    bonus: r.bonus, shikiriPrice: r.shikiriPrice
-  })));
-  const params = new URLSearchParams({
-    action: 'saveSendHistory',
-    sentAt: sentAt,
-    wateringDate: currentDateStr,
-    rows: rows
-  });
-  fetch(GAS_URL + '?' + params.toString())
-    .then(r => r.json())
-    .then(res => {
-      if (res.status === 'duplicate') {
-        showMsg(currentDateStr + ' はすでに登録済みです', 'error');
-        if (onDuplicate) onDuplicate();
-      }
-    })
-    .catch(err => console.error('履歴保存エラー:', err));
 }
 </script>
 </body>
