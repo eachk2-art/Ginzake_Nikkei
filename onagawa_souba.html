@@ -421,6 +421,7 @@ function showMsg(msg, type) {
   const el = document.getElementById('msg-box');
   el.textContent = msg;
   el.className = 'msg-box '+type;
+  el.style.display = 'block';
   if (msgTimer) clearTimeout(msgTimer);
   msgTimer = setTimeout(() => {
     el.style.display = 'none';
