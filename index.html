@@ -279,8 +279,8 @@ function getPrevDayPrices(year, dateStr) {
   allData.forEach(function(r) {
     var d = new Date(r.date);
     if (d.getFullYear() !== year) return;
-    if (d.getTime() < targetTs && r.grade !== '合計') return; // 合計行は後でまとめる
-    if (d.getTime() < targetTs) candidates.push(r);
+    if (d.getTime() >= targetTs) return; // 当日以降はスキップ
+    candidates.push(r);
   });
   if (candidates.length === 0) return null;
   // 最も新しい日付を探す
