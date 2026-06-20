@@ -336,6 +336,30 @@ function renderData(result) {
       var mainAvg=(mainQty>0&&mainAmt>0)?priceRound(mainAmt,mainQty):null;
       // その年の直近前日の単価マップを取得
       var prevPrices = getPrevDayPrices(yb.year, dateStr);
+      // 前日の主要規格平均を算出
+      var prevMainAvg = null;
+      if (prevPrices) {
+        var prevMainQty=0, prevMainAmt=0;
+        // prevPricesはgrade→priceのマップなので、allDataから前日の数量・金額を取得
+        var prevDateTs = 0;
+        allData.forEach(function(r){
+          var d=new Date(r.date);
+          if(d.getFullYear()!==yb.year) return;
+          if(d.getTime()>=new Date(dateStr).getTime()) return;
+          if(d.getTime()>prevDateTs) prevDateTs=d.getTime();
+        });
+        if(prevDateTs>0){
+          allData.forEach(function(r){
+            var d=new Date(r.date);
+            if(d.getTime()!==prevDateTs) return;
+            if(r.grade==='合計') return;
+            if(EXCLUDE_FROM_MAIN[r.grade]) return;
+            prevMainQty+=Number(r.qty)||0;
+            prevMainAmt+=Number(r.amt)||0;
+          });
+          if(prevMainQty>0&&prevMainAmt>0) prevMainAvg=priceRound(prevMainAmt,prevMainQty);
+        }
+      }
       yb.rows.forEach(function(r){
         var isTotal=r.grade==='合計';
         var price=Number(r.price);
@@ -345,7 +369,8 @@ function renderData(result) {
         rows+='<tr class="'+(isTotal?'row-total':'')+'"><td>'+r.grade+'</td><td>'+Number(r.qty).toLocaleString()+'</td><td>'+priceCell+'</td><td>'+formatNote(r.note)+'</td></tr>';
         // 合計行のすぐ下に主要規格平均行を追加
         if(isTotal&&mainAvg!==null){
-          rows+='<tr class="row-subavg"><td colspan="2" class="subavg-label">主要規格平均<span class="subavg-note">（スレ・次品・0.5k上を除く）</span></td><td class="subavg-value">'+Number(mainAvg).toLocaleString()+'</td><td></td></tr>';
+          var mainDiff = (prevMainAvg!==null) ? diffHtml(mainAvg, prevMainAvg) : '';
+          rows+='<tr class="row-subavg"><td colspan="2" class="subavg-label">主要規格平均<span class="subavg-note">（スレ・次品・0.5k上を除く）</span></td><td class="subavg-value">'+Number(mainAvg).toLocaleString()+mainDiff+'</td><td></td></tr>';
         }
       });
       block.innerHTML='<div class="year-header"><span class="year-header-year">'+yb.year+'年</span><span class="year-header-date">'+month+'月'+day+'日</span></div><table><colgroup><col style="width:22%"><col style="width:22%"><col style="width:33%"><col style="width:23%"></colgroup><thead><tr><th>規格</th><th>数量</th><th>単価</th><th>構成比</th></tr></thead><tbody>'+rows+'</tbody></table>';
